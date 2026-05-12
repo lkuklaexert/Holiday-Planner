@@ -1,4 +1,6 @@
 import React, { useMemo, useState, useEffect } from "react";
+import { Auth } from "@supabase/auth-ui-react";
+import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "./supabase";
 
 function Button({ children, onClick, type = "button", variant = "primary", size = "md", className = "", disabled = false, title }) {
