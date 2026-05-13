@@ -156,6 +156,22 @@ function paymentStatusLabel(booking) {
 }
 
 export default function IrishHolidayPlanner() {
+  const [session, setSession] = useState(null);
+
+useEffect(() => {
+  supabase.auth.getSession().then(({ data: { session } }) => {
+    setSession(session);
+  });
+
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange((_event, session) => {
+    setSession(session);
+  });
+
+  return () => subscription.unsubscribe();
+}, []);
+  
   const currentYear = new Date().getFullYear();
   const defaultCurrentDate = toISO(new Date());
 
@@ -374,6 +390,24 @@ export default function IrishHolidayPlanner() {
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const currentMonth = new Date().getMonth();
 
+  if (!session) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-100">
+        <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-lg">
+          <h1 className="mb-4 text-2xl font-bold text-center">
+            Employee Holiday Planner
+          </h1>
+  
+          <Auth
+            supabaseClient={supabase}
+            appearance={{ theme: ThemeSupa }}
+            providers={[]}
+          />
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <div className="min-h-screen bg-slate-50 p-4 text-slate-900">
       <div className="mx-auto max-w-[1600px] space-y-4">
