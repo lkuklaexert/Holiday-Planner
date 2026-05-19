@@ -457,7 +457,16 @@ useEffect(() => {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <Icon label="calendar" />
+  <Button
+    variant="outline"
+    onClick={async () => {
+      await supabase.auth.signOut();
+    }}
+  >
+    Log out
+  </Button>
+
+  <Icon label="calendar" />
             <label className="text-sm font-medium">Year</label>
             <input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} className="w-28 rounded-xl border px-3 py-2 text-sm" />
           </div>
