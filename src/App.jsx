@@ -155,6 +155,10 @@ function paymentStatusLabel(booking) {
 
 export default function IrishHolidayPlanner() {
   const [session, setSession] = useState(null);
+  const [loginEmail, setLoginEmail] = useState("");
+const [loginPassword, setLoginPassword] = useState("");
+const [loginError, setLoginError] = useState("");
+  
 
 useEffect(() => {
   supabase.auth.getSession().then(({ data: { session } }) => {
@@ -191,6 +195,18 @@ useEffect(() => {
   const bankHolidayMap = useMemo(() => getIrishBankHolidays(Number(year)), [year]);
   const yearDays = useMemo(() => getDaysInYear(Number(year)), [year]);
   const selectedEmployee = employees.find((e) => e.id === selectedEmployeeId) || employees[0];
+
+  async function handleLogin(e) {
+    e.preventDefault();
+    setLoginError("");
+  
+    const { error } = await supabase.auth.signInWithPassword({
+      email: loginEmail,
+      password: loginPassword,
+    });
+  
+    if (error) setLoginError(error.message);
+  }
 
   async function loadEmployees() {
     const { data, error } = await supabase
@@ -390,18 +406,43 @@ useEffect(() => {
 
   if (!session) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-100">
-        <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-lg">
+      <div className="min-h-screen flex items-center justify-center bg-slate-100 p-4">
+        <form onSubmit={handleLogin} className="w-full max-w-md rounded-2xl bg-white p-6 shadow-lg">
           <h1 className="mb-4 text-2xl font-bold text-center">
             Employee Holiday Planner
           </h1>
   
-          <Auth
-            supabaseClient={supabase}
-            appearance={{ theme: ThemeSupa }}
-            providers={[]}
-          />
-        </div>
+          <div className="space-y-3">
+            <input
+              type="email"
+              placeholder="Email"
+              value={loginEmail}
+              onChange={(e) => setLoginEmail(e.target.value)}
+              className="w-full rounded-xl border px-3 py-2 text-sm"
+              required
+            />
+  
+            <input
+              type="password"
+              placeholder="Password"
+              value={loginPassword}
+              onChange={(e) => setLoginPassword(e.target.value)}
+              className="w-full rounded-xl border px-3 py-2 text-sm"
+              required
+            />
+  
+            {loginError && (
+              <p className="text-sm text-red-600">{loginError}</p>
+            )}
+  
+            <button
+              type="submit"
+              className="w-full rounded-xl bg-slate-900 px-3 py-2 text-sm font-medium text-white"
+            >
+              Log in
+            </button>
+          </div>
+        </form>
       </div>
     );
   }
