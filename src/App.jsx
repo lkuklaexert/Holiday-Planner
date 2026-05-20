@@ -283,8 +283,8 @@ useEffect(() => {
 
     setEmployees(employeesWithHolidays);
 
-    if (!selectedEmployeeId && employeesWithHolidays.length > 0) {
-      setSelectedEmployeeId(employeesWithHolidays[0].id);
+    if (employeesWithHolidays.length > 0) {
+      setSelectedEmployeeId((current) => current || employeesWithHolidays[0].id);
     }
   }
 
