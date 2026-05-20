@@ -179,13 +179,16 @@ useEffect(() => {
   const defaultCurrentDate = toISO(new Date());
 
   const [year, setYear] = useState(currentYear);
-  const [employees, setEmployees] = useState([]);
-  const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
-  const [newName, setNewName] = useState("");
-  const [newEntitlement, setNewEntitlement] = useState(25);
-  const [holidayStart, setHolidayStart] = useState(defaultCurrentDate);
-  const [holidayEnd, setHolidayEnd] = useState(defaultCurrentDate);
-  const [leaveCategory, setLeaveCategory] = useState(LEAVE_CATEGORIES.STANDARD);
+const [employees, setEmployees] = useState([]);
+const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
+const [newName, setNewName] = useState("");
+const [newEntitlement, setNewEntitlement] = useState(25);
+
+const [holidayStart, setHolidayStart] = useState(defaultCurrentDate);
+const [holidayEnd, setHolidayEnd] = useState(defaultCurrentDate);
+const [dayAmount, setDayAmount] = useState(1);
+
+const [leaveCategory, setLeaveCategory] = useState(LEAVE_CATEGORIES.STANDARD);
   const [exceptionType, setExceptionType] = useState("sick_leave");
   const [paymentStatus, setPaymentStatus] = useState("paid");
   const [holidayNotes, setHolidayNotes] = useState("");
