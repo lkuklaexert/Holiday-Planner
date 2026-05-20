@@ -198,7 +198,7 @@ useEffect(() => {
 
   async function handleLogin(e) {
     e.preventDefault();
-    setLoginError("");
+    setLoginError("");async function handleLogin(e) {
   
     const { error } = await supabase.auth.signInWithPassword({
       email: loginEmail,
@@ -206,6 +206,22 @@ useEffect(() => {
     });
   
     if (error) setLoginError(error.message);
+  }
+
+  async function handleSetNewPassword(e) {
+    e.preventDefault();
+    setLoginError("");
+  
+    const { error } = await supabase.auth.updateUser({
+      password: loginPassword,
+    });
+  
+    if (error) {
+      setLoginError(error.message);
+      return;
+    }
+  
+    alert("Password updated successfully.");
   }
 
   async function loadEmployees() {
@@ -465,6 +481,36 @@ useEffect(() => {
   >
     Log out
   </Button>
+  <div className="flex flex-wrap items-center gap-2">
+
+  <Button
+    variant="outline"
+    onClick={async () => {
+      await supabase.auth.signOut();
+    }}
+  >
+    Log out
+  </Button>
+
+  <form onSubmit={handleSetNewPassword} className="flex items-center gap-2">
+    <input
+      type="password"
+      placeholder="New password"
+      value={loginPassword}
+      onChange={(e) => setLoginPassword(e.target.value)}
+      className="rounded-xl border px-3 py-2 text-sm"
+      required
+    />
+
+    <button
+      type="submit"
+      className="rounded-xl bg-slate-900 px-3 py-2 text-sm font-medium text-white"
+    >
+      Change Password
+    </button>
+  </form>
+
+  <Icon label="calendar" />
 
   <Icon label="calendar" />
             <label className="text-sm font-medium">Year</label>
