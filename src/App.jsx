@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { supabase } from "./supabase";
 
-function Button({ children, onClick, type = "button", variant = "primary", size = "md", className = "", disabled = false, title }) {
+function Button({ children, onClick, type = "button", variant = "primary", size = "md", className = "", disabled = false }) {
   const base = "inline-flex items-center justify-center gap-1 rounded-xl font-medium transition disabled:cursor-not-allowed disabled:opacity-50";
   const sizes = { sm: "px-2 py-1 text-xs", md: "px-3 py-2 text-sm" };
   const variants = {
@@ -10,7 +10,7 @@ function Button({ children, onClick, type = "button", variant = "primary", size 
     ghost: "bg-transparent text-slate-700 hover:bg-slate-100",
     danger: "border border-red-200 bg-white text-red-700 hover:bg-red-50",
   };
-  return <button type={type} onClick={onClick} disabled={disabled} title={title} className={`${base} ${sizes[size]} ${variants[variant]} ${className}`}>{children}</button>;
+  return <button type={type} onClick={onClick} disabled={disabled} className={`${base} ${sizes[size]} ${variants[variant]} ${className}`}>{children}</button>;
 }
 
 function Card({ children }) {
@@ -100,7 +100,6 @@ function getIrishBankHolidays(year) {
     while (used.has(toISO(d))) d = addDays(d, 1);
     used.set(toISO(d), h.name);
   });
-
   return used;
 }
 
@@ -155,105 +154,163 @@ function paymentStatusLabel(booking) {
 }
 
 export default function IrishHolidayPlanner() {
-  const [session, setSession] = useState(null);
-  const [loginEmail, setLoginEmail] = useState("");
-const [loginPassword, setLoginPassword] = useState("");
-const [loginError, setLoginError] = useState("");
-  
-
-useEffect(() => {
-  supabase.auth.getSession().then(({ data: { session } }) => {
-    setSession(session);
-  });
-
-  const {
-    data: { subscription },
-  } = supabase.auth.onAuthStateChange((_event, session) => {
-    setSession(session);
-  });
-
-  return () => subscription.unsubscribe();
-}, []);
-  
   const currentYear = new Date().getFullYear();
   const defaultCurrentDate = toISO(new Date());
 
+  const [session, setSession] = useState(null);
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
+
   const [year, setYear] = useState(currentYear);
-const [employees, setEmployees] = useState([]);
-const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
-const [newName, setNewName] = useState("");
-const [newEntitlement, setNewEntitlement] = useState(25);
+  const [employees, setEmployees] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
 
-const [holidayStart, setHolidayStart] = useState(defaultCurrentDate);
-const [holidayEnd, setHolidayEnd] = useState(defaultCurrentDate);
-const [dayAmount, setDayAmount] = useState(1);
+  const [newFirstName, setNewFirstName] = useState("");
+  const [newLastName, setNewLastName] = useState("");
+  const [newStaffNumber, setNewStaffNumber] = useState("");
+  const [newDepartmentId, setNewDepartmentId] = useState("");
+  const [newEntitlement, setNewEntitlement] = useState(25);
 
-const [leaveCategory, setLeaveCategory] = useState(LEAVE_CATEGORIES.STANDARD);
+  const [newDepartmentName, setNewDepartmentName] = useState("");
+
+  const [holidayStart, setHolidayStart] = useState(defaultCurrentDate);
+  const [holidayEnd, setHolidayEnd] = useState(defaultCurrentDate);
+  const [dayAmount, setDayAmount] = useState(1);
+  const [leaveCategory, setLeaveCategory] = useState(LEAVE_CATEGORIES.STANDARD);
   const [exceptionType, setExceptionType] = useState("sick_leave");
   const [paymentStatus, setPaymentStatus] = useState("paid");
   const [holidayNotes, setHolidayNotes] = useState("");
+
   const [editingId, setEditingId] = useState(null);
-  const [editName, setEditName] = useState("");
+  const [editFirstName, setEditFirstName] = useState("");
+  const [editLastName, setEditLastName] = useState("");
+  const [editStaffNumber, setEditStaffNumber] = useState("");
+  const [editDepartmentId, setEditDepartmentId] = useState("");
   const [editEntitlement, setEditEntitlement] = useState(25);
 
   const bankHolidayMap = useMemo(() => getIrishBankHolidays(Number(year)), [year]);
   const yearDays = useMemo(() => getDaysInYear(Number(year)), [year]);
   const selectedEmployee = employees.find((e) => e.id === selectedEmployeeId) || employees[0];
 
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (session) {
+      loadDepartments();
+      loadEmployees();
+    }
+  }, [session]);
+
+  useEffect(() => {
+    if (!session) return;
+
+    const channel = supabase
+      .channel("planner-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "employees" }, loadEmployees)
+      .on("postgres_changes", { event: "*", schema: "public", table: "holiday_bookings" }, loadEmployees)
+      .on("postgres_changes", { event: "*", schema: "public", table: "departments" }, () => {
+        loadDepartments();
+        loadEmployees();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [session]);
+
+  function employeeFullName(employee) {
+    const full = `${employee.first_name || ""} ${employee.last_name || ""}`.trim();
+    return full || employee.name || "Unnamed Employee";
+  }
+
+  function departmentName(id) {
+    return departments.find((d) => d.id === id)?.name || "No department";
+  }
+
   async function handleLogin(e) {
     e.preventDefault();
     setLoginError("");
-  
+
     const { error } = await supabase.auth.signInWithPassword({
       email: loginEmail,
       password: loginPassword,
     });
-  
+
     if (error) setLoginError(error.message);
   }
 
   async function handleResetPassword() {
     setLoginError("");
-  
+
     if (!loginEmail) {
       setLoginError("Please enter your email first.");
       return;
     }
-  
+
     const { error } = await supabase.auth.resetPasswordForEmail(loginEmail, {
       redirectTo: window.location.origin,
     });
-  
+
     if (error) {
       setLoginError(error.message);
       return;
     }
-  
+
     alert("Password reset email sent. Please check your inbox.");
   }
-  
+
   async function handleSetNewPassword(e) {
     e.preventDefault();
     setLoginError("");
-  
+
     const { error } = await supabase.auth.updateUser({
       password: loginPassword,
     });
-  
+
     if (error) {
-      setLoginError(error.message);
+      alert(error.message);
       return;
     }
-  
+
     alert("Password updated successfully.");
     setLoginPassword("");
+  }
+
+  async function loadDepartments() {
+    const { data, error } = await supabase
+      .from("departments")
+      .select("*")
+      .eq("active", true)
+      .order("name", { ascending: true });
+
+    if (error) {
+      console.error("Departments load error:", error);
+      return;
+    }
+
+    setDepartments(data || []);
+
+    if (!newDepartmentId && data?.length > 0) {
+      setNewDepartmentId(data[0].id);
+    }
   }
 
   async function loadEmployees() {
     const { data, error } = await supabase
       .from("employees")
       .select("*")
-      .order("name", { ascending: true });
+      .order("last_name", { ascending: true });
 
     if (error) {
       console.error("Employees load error:", error);
@@ -293,22 +350,6 @@ const [leaveCategory, setLeaveCategory] = useState(LEAVE_CATEGORIES.STANDARD);
     }
   }
 
-  useEffect(() => {
-    loadEmployees();
-  }, []);
-
-  useEffect(() => {
-    const channel = supabase
-      .channel("planner-realtime")
-      .on("postgres_changes", { event: "*", schema: "public", table: "employees" }, loadEmployees)
-      .on("postgres_changes", { event: "*", schema: "public", table: "holiday_bookings" }, loadEmployees)
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
   const holidayDayMap = useMemo(() => {
     const map = new Map();
 
@@ -339,22 +380,69 @@ const [leaveCategory, setLeaveCategory] = useState(LEAVE_CATEGORIES.STANDARD);
     return employee.holidays.reduce((sum, h) => sum + (isStandardBooking(h) ? 0 : bookingTotalWorkingDays(h, bankHolidayMap)), 0);
   }
 
-  async function addEmployee() {
-    const name = newName.trim();
+  async function addDepartment() {
+    const name = newDepartmentName.trim();
     if (!name) return;
 
-    const { error } = await supabase.from("employees").insert({
-      name,
-      entitlement: Number(newEntitlement) || 0,
-    });
+    const { error } = await supabase.from("departments").insert({ name });
 
     if (error) {
-      console.error("Add employee error:", error);
       alert(error.message);
       return;
     }
 
-    setNewName("");
+    setNewDepartmentName("");
+    await loadDepartments();
+  }
+
+  async function deleteDepartment(id) {
+    const { error } = await supabase
+      .from("departments")
+      .update({ active: false })
+      .eq("id", id);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    await loadDepartments();
+  }
+
+  async function addEmployee() {
+    const firstName = newFirstName.trim();
+    const lastName = newLastName.trim();
+    const staffNumber = newStaffNumber.trim();
+
+    if (!firstName || !lastName) {
+      alert("First name and last name are required.");
+      return;
+    }
+
+    if (staffNumber && !/^[0-9]{1,10}$/.test(staffNumber)) {
+      alert("Staff number must be up to 10 digits only.");
+      return;
+    }
+
+    const fullName = `${firstName} ${lastName}`.trim();
+
+    const { error } = await supabase.from("employees").insert({
+      first_name: firstName,
+      last_name: lastName,
+      name: fullName,
+      staff_number: staffNumber || null,
+      department_id: newDepartmentId || null,
+      entitlement: Number(newEntitlement) || 0,
+    });
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    setNewFirstName("");
+    setNewLastName("");
+    setNewStaffNumber("");
     setNewEntitlement(25);
     await loadEmployees();
   }
@@ -363,7 +451,6 @@ const [leaveCategory, setLeaveCategory] = useState(LEAVE_CATEGORIES.STANDARD);
     const { error } = await supabase.from("employees").delete().eq("id", id);
 
     if (error) {
-      console.error("Delete employee error:", error);
       alert(error.message);
       return;
     }
@@ -374,21 +461,35 @@ const [leaveCategory, setLeaveCategory] = useState(LEAVE_CATEGORIES.STANDARD);
 
   function startEdit(employee) {
     setEditingId(employee.id);
-    setEditName(employee.name);
+    setEditFirstName(employee.first_name || "");
+    setEditLastName(employee.last_name || "");
+    setEditStaffNumber(employee.staff_number || "");
+    setEditDepartmentId(employee.department_id || "");
     setEditEntitlement(employee.entitlement);
   }
 
   async function saveEdit(id) {
+    if (editStaffNumber && !/^[0-9]{1,10}$/.test(editStaffNumber)) {
+      alert("Staff number must be up to 10 digits only.");
+      return;
+    }
+
+    const firstName = editFirstName.trim();
+    const lastName = editLastName.trim();
+
     const { error } = await supabase
       .from("employees")
       .update({
-        name: editName.trim(),
+        first_name: firstName,
+        last_name: lastName,
+        name: `${firstName} ${lastName}`.trim(),
+        staff_number: editStaffNumber.trim() || null,
+        department_id: editDepartmentId || null,
         entitlement: Number(editEntitlement) || 0,
       })
       .eq("id", id);
 
     if (error) {
-      console.error("Save employee error:", error);
       alert(error.message);
       return;
     }
@@ -401,6 +502,7 @@ const [leaveCategory, setLeaveCategory] = useState(LEAVE_CATEGORIES.STANDARD);
     const current = toISO(new Date());
     setHolidayStart(current);
     setHolidayEnd(current);
+    setDayAmount(1);
     setLeaveCategory(LEAVE_CATEGORIES.STANDARD);
     setExceptionType("sick_leave");
     setPaymentStatus("paid");
@@ -423,21 +525,18 @@ const [leaveCategory, setLeaveCategory] = useState(LEAVE_CATEGORIES.STANDARD);
     });
 
     if (error) {
-      console.error("Add booking error:", error);
       alert(error.message);
       return;
     }
 
     resetHolidayPickerToCurrentMonth();
     await loadEmployees();
-    setDayAmount(1);
   }
 
   async function deleteHoliday(employeeId, holidayId) {
     const { error } = await supabase.from("holiday_bookings").delete().eq("id", holidayId);
 
     if (error) {
-      console.error("Delete booking error:", error);
       alert(error.message);
       return;
     }
@@ -452,52 +551,25 @@ const [leaveCategory, setLeaveCategory] = useState(LEAVE_CATEGORIES.STANDARD);
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-100 p-4">
         <form onSubmit={handleLogin} className="w-full max-w-md rounded-2xl bg-white p-6 shadow-lg">
-          <h1 className="mb-4 text-2xl font-bold text-center">
-            Employee Holiday Planner
-          </h1>
-  
+          <h1 className="mb-4 text-2xl font-bold text-center">Employee Holiday Planner</h1>
+
           <div className="space-y-3">
-            <input
-              type="email"
-              placeholder="Email"
-              value={loginEmail}
-              onChange={(e) => setLoginEmail(e.target.value)}
-              className="w-full rounded-xl border px-3 py-2 text-sm"
-              required
-            />
-  
-            <input
-              type="password"
-              placeholder="Password"
-              value={loginPassword}
-              onChange={(e) => setLoginPassword(e.target.value)}
-              className="w-full rounded-xl border px-3 py-2 text-sm"
-              required
-            />
-  
-            {loginError && (
-              <p className="text-sm text-red-600">{loginError}</p>
-            )}
-  
-            <button
-              type="submit"
-              className="w-full rounded-xl bg-slate-900 px-3 py-2 text-sm font-medium text-white"
-            >
-              Log in
+            <input type="email" placeholder="Email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} className="w-full rounded-xl border px-3 py-2 text-sm" required />
+            <input type="password" placeholder="Password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} className="w-full rounded-xl border px-3 py-2 text-sm" required />
+
+            {loginError && <p className="text-sm text-red-600">{loginError}</p>}
+
+            <button type="submit" className="w-full rounded-xl bg-slate-900 px-3 py-2 text-sm font-medium text-white">Log in</button>
+
+            <button type="button" onClick={handleResetPassword} className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-800">
+              Reset password
             </button>
-            <button
-  type="button"
-  onClick={handleResetPassword}
-  className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-800"
->
-  Reset password
-</button>
           </div>
         </form>
       </div>
     );
   }
-  
+
   return (
     <div className="min-h-screen bg-slate-50 p-4 text-slate-900">
       <div className="mx-auto max-w-[1600px] space-y-4">
@@ -508,46 +580,20 @@ const [leaveCategory, setLeaveCategory] = useState(LEAVE_CATEGORIES.STANDARD);
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-  <Button
-    variant="outline"
-    onClick={async () => {
-      await supabase.auth.signOut();
-    }}
-  >
-    Log out
-  </Button>
+            <Button variant="outline" onClick={async () => await supabase.auth.signOut()}>Log out</Button>
 
-  <form onSubmit={handleSetNewPassword} className="flex items-center gap-2">
-    <input
-      type="password"
-      placeholder="New password"
-      value={loginPassword}
-      onChange={(e) => setLoginPassword(e.target.value)}
-      className="rounded-xl border px-3 py-2 text-sm"
-      required
-    />
+            <form onSubmit={handleSetNewPassword} className="flex items-center gap-2">
+              <input type="password" placeholder="New password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} className="rounded-xl border px-3 py-2 text-sm" required />
+              <button type="submit" className="rounded-xl bg-slate-900 px-3 py-2 text-sm font-medium text-white">Change Password</button>
+            </form>
 
-    <button
-      type="submit"
-      className="rounded-xl bg-slate-900 px-3 py-2 text-sm font-medium text-white"
-    >
-      Change Password
-    </button>
-  </form>
-
-  <Icon label="calendar" />
-  <label className="text-sm font-medium">Year</label>
-  <input
-    type="number"
-    value={year}
-    onChange={(e) => setYear(Number(e.target.value))}
-    className="w-28 rounded-xl border px-3 py-2 text-sm"
-  />
-</div>
-
+            <Icon label="calendar" />
+            <label className="text-sm font-medium">Year</label>
+            <input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} className="w-28 rounded-xl border px-3 py-2 text-sm" />
           </div>
+        </div>
 
-        <div className="grid gap-4 lg:grid-cols-[400px_1fr]">
+        <div className="grid gap-4 lg:grid-cols-[430px_1fr]">
           <div className="space-y-4">
             <Card>
               <CardContent className="space-y-3 p-4">
@@ -556,11 +602,19 @@ const [leaveCategory, setLeaveCategory] = useState(LEAVE_CATEGORIES.STANDARD);
                   <h2 className="font-semibold">Employees</h2>
                 </div>
 
-                <div className="grid grid-cols-[1fr_90px_auto] gap-2">
-                  <input placeholder="Employee name" value={newName} onChange={(e) => setNewName(e.target.value)} className="rounded-xl border px-3 py-2 text-sm" />
+                <div className="grid grid-cols-2 gap-2">
+                  <input placeholder="First name" value={newFirstName} onChange={(e) => setNewFirstName(e.target.value)} className="rounded-xl border px-3 py-2 text-sm" />
+                  <input placeholder="Last name" value={newLastName} onChange={(e) => setNewLastName(e.target.value)} className="rounded-xl border px-3 py-2 text-sm" />
+                  <input placeholder="Staff no. max 10 digits" value={newStaffNumber} onChange={(e) => setNewStaffNumber(e.target.value.replace(/\D/g, "").slice(0, 10))} className="rounded-xl border px-3 py-2 text-sm" />
                   <input type="number" value={newEntitlement} onChange={(e) => setNewEntitlement(e.target.value)} className="rounded-xl border px-3 py-2 text-sm" />
-                  <Button onClick={addEmployee}><Icon label="plus" /></Button>
                 </div>
+
+                <select value={newDepartmentId} onChange={(e) => setNewDepartmentId(e.target.value)} className="w-full rounded-xl border px-3 py-2 text-sm">
+                  <option value="">No department</option>
+                  {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+                </select>
+
+                <Button onClick={addEmployee} className="w-full"><Icon label="plus" /> Add employee</Button>
 
                 <div className="space-y-2">
                   {employees.map((employee) => {
@@ -573,8 +627,18 @@ const [leaveCategory, setLeaveCategory] = useState(LEAVE_CATEGORIES.STANDARD);
                       <div key={employee.id} className={`rounded-2xl border p-3 ${isSelected ? "border-slate-900 bg-slate-100" : "bg-white"}`}>
                         {editingId === employee.id ? (
                           <div className="space-y-2">
-                            <input value={editName} onChange={(e) => setEditName(e.target.value)} className="w-full rounded-xl border px-3 py-2 text-sm" />
-                            <input type="number" value={editEntitlement} onChange={(e) => setEditEntitlement(e.target.value)} className="w-full rounded-xl border px-3 py-2 text-sm" />
+                            <div className="grid grid-cols-2 gap-2">
+                              <input value={editFirstName} onChange={(e) => setEditFirstName(e.target.value)} className="rounded-xl border px-3 py-2 text-sm" />
+                              <input value={editLastName} onChange={(e) => setEditLastName(e.target.value)} className="rounded-xl border px-3 py-2 text-sm" />
+                              <input value={editStaffNumber} onChange={(e) => setEditStaffNumber(e.target.value.replace(/\D/g, "").slice(0, 10))} className="rounded-xl border px-3 py-2 text-sm" />
+                              <input type="number" value={editEntitlement} onChange={(e) => setEditEntitlement(e.target.value)} className="rounded-xl border px-3 py-2 text-sm" />
+                            </div>
+
+                            <select value={editDepartmentId} onChange={(e) => setEditDepartmentId(e.target.value)} className="w-full rounded-xl border px-3 py-2 text-sm">
+                              <option value="">No department</option>
+                              {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+                            </select>
+
                             <div className="flex gap-2">
                               <Button size="sm" onClick={() => saveEdit(employee.id)}><Icon label="save" />Save</Button>
                               <Button size="sm" variant="outline" onClick={() => setEditingId(null)}><Icon label="close" />Cancel</Button>
@@ -583,7 +647,8 @@ const [leaveCategory, setLeaveCategory] = useState(LEAVE_CATEGORIES.STANDARD);
                         ) : (
                           <>
                             <button onClick={() => setSelectedEmployeeId(employee.id)} className="w-full text-left">
-                              <p className="font-semibold">{employee.name}</p>
+                              <p className="font-semibold">{employeeFullName(employee)}</p>
+                              <p className="text-xs text-slate-600">Staff No: {employee.staff_number || "-"} | Dept: {departmentName(employee.department_id)}</p>
                               <p className="text-xs text-slate-600">Entitlement: {employee.entitlement} | Standard used: {standardUsed} | Remaining: {remaining}</p>
                               <p className="text-xs text-slate-600">Exception days recorded: {exceptions}</p>
                             </button>
@@ -602,13 +667,31 @@ const [leaveCategory, setLeaveCategory] = useState(LEAVE_CATEGORIES.STANDARD);
 
             <Card>
               <CardContent className="space-y-3 p-4">
+                <h2 className="font-semibold">Departments Admin</h2>
+                <div className="flex gap-2">
+                  <input placeholder="New department" value={newDepartmentName} onChange={(e) => setNewDepartmentName(e.target.value)} className="flex-1 rounded-xl border px-3 py-2 text-sm" />
+                  <Button onClick={addDepartment}>Add</Button>
+                </div>
+                <div className="space-y-1">
+                  {departments.map((d) => (
+                    <div key={d.id} className="flex items-center justify-between rounded-xl border p-2 text-sm">
+                      <span>{d.name}</span>
+                      <Button size="sm" variant="danger" onClick={() => deleteDepartment(d.id)}>Remove</Button>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="space-y-3 p-4">
                 <h2 className="font-semibold">Add leave / holiday</h2>
 
                 <select value={selectedEmployeeId || ""} onChange={(e) => setSelectedEmployeeId(e.target.value)} className="w-full rounded-xl border px-3 py-2 text-sm">
-                  {employees.map((e) => <option key={e.id} value={e.id}>{e.name}</option>)}
+                  {employees.map((e) => <option key={e.id} value={e.id}>{employeeFullName(e)}</option>)}
                 </select>
 
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   <div>
                     <label className="text-xs text-slate-600">Start</label>
                     <input type="date" value={holidayStart} onChange={(e) => setHolidayStart(e.target.value)} className="w-full rounded-xl border px-3 py-2 text-sm" />
@@ -617,18 +700,14 @@ const [leaveCategory, setLeaveCategory] = useState(LEAVE_CATEGORIES.STANDARD);
                     <label className="text-xs text-slate-600">End</label>
                     <input type="date" value={holidayEnd} onChange={(e) => setHolidayEnd(e.target.value)} className="w-full rounded-xl border px-3 py-2 text-sm" />
                   </div>
+                  <div>
+                    <label className="text-xs text-slate-600">Amount</label>
+                    <select value={dayAmount} onChange={(e) => setDayAmount(Number(e.target.value))} className="w-full rounded-xl border px-3 py-2 text-sm">
+                      <option value={1}>Full day</option>
+                      <option value={0.5}>Half day</option>
+                    </select>
+                  </div>
                 </div>
-                <div>
-  <label className="text-xs text-slate-600">Day amount</label>
-  <select
-    value={dayAmount}
-    onChange={(e) => setDayAmount(Number(e.target.value))}
-    className="w-full rounded-xl border px-3 py-2 text-sm"
-  >
-    <option value={1}>Full day</option>
-    <option value={0.5}>Half day</option>
-  </select>
-</div>
 
                 <div>
                   <label className="text-xs text-slate-600">Leave category</label>
@@ -640,28 +719,18 @@ const [leaveCategory, setLeaveCategory] = useState(LEAVE_CATEGORIES.STANDARD);
 
                 {leaveCategory === LEAVE_CATEGORIES.EXCEPTION && (
                   <>
-                    <div>
-                      <label className="text-xs text-slate-600">Exception type</label>
-                      <select value={exceptionType} onChange={(e) => setExceptionType(e.target.value)} className="w-full rounded-xl border px-3 py-2 text-sm">
-                        {EXCEPTION_TYPES.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
-                      </select>
-                    </div>
+                    <select value={exceptionType} onChange={(e) => setExceptionType(e.target.value)} className="w-full rounded-xl border px-3 py-2 text-sm">
+                      {EXCEPTION_TYPES.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
+                    </select>
 
-                    <div>
-                      <label className="text-xs text-slate-600">Paid status</label>
-                      <select value={paymentStatus} onChange={(e) => setPaymentStatus(e.target.value)} className="w-full rounded-xl border px-3 py-2 text-sm">
-                        <option value="paid">Paid</option>
-                        <option value="unpaid">Unpaid</option>
-                      </select>
-                    </div>
+                    <select value={paymentStatus} onChange={(e) => setPaymentStatus(e.target.value)} className="w-full rounded-xl border px-3 py-2 text-sm">
+                      <option value="paid">Paid</option>
+                      <option value="unpaid">Unpaid</option>
+                    </select>
                   </>
                 )}
 
-                <div>
-                  <label className="text-xs text-slate-600">Notes</label>
-                  <textarea value={holidayNotes} onChange={(e) => setHolidayNotes(e.target.value)} className="min-h-[70px] w-full rounded-xl border px-3 py-2 text-sm" placeholder="Optional note" />
-                </div>
-
+                <textarea value={holidayNotes} onChange={(e) => setHolidayNotes(e.target.value)} className="min-h-[70px] w-full rounded-xl border px-3 py-2 text-sm" placeholder="Optional note" />
                 <Button onClick={addHoliday} className="w-full" disabled={!selectedEmployee}>Add booking</Button>
               </CardContent>
             </Card>
@@ -669,7 +738,7 @@ const [leaveCategory, setLeaveCategory] = useState(LEAVE_CATEGORIES.STANDARD);
             {selectedEmployee && (
               <Card>
                 <CardContent className="space-y-3 p-4">
-                  <h2 className="font-semibold">Booked leave: {selectedEmployee.name}</h2>
+                  <h2 className="font-semibold">Booked leave: {employeeFullName(selectedEmployee)}</h2>
 
                   {selectedEmployee.holidays.length === 0 ? (
                     <p className="text-sm text-slate-500">No bookings yet.</p>
@@ -679,8 +748,8 @@ const [leaveCategory, setLeaveCategory] = useState(LEAVE_CATEGORIES.STANDARD);
                         <div key={h.id} className="rounded-xl border bg-white p-2 text-sm">
                           <div className="flex items-start justify-between gap-2">
                             <div>
-                              <p className="font-medium">{h.start} to {h.end} ({bookingTotalWorkingDays(h, bankHolidayMap)} working days)</p>
-                              <p className="text-xs text-slate-600">Type: {bookingTypeLabel(h)} | Paid status: {paymentStatusLabel(h)} | Deducted: {bookingDaysForEntitlement(h, bankHolidayMap)}</p>
+                              <p className="font-medium">{h.start} to {h.end} ({bookingTotalWorkingDays(h, bankHolidayMap)} days)</p>
+                              <p className="text-xs text-slate-600">Type: {bookingTypeLabel(h)} | Paid: {paymentStatusLabel(h)} | Deducted: {bookingDaysForEntitlement(h, bankHolidayMap)}</p>
                               {h.notes && <p className="mt-1 text-xs text-slate-500">Note: {h.notes}</p>}
                             </div>
                             <Button size="sm" variant="ghost" onClick={() => deleteHoliday(selectedEmployee.id, h.id)}><Icon label="trash" /></Button>
@@ -714,7 +783,9 @@ const [leaveCategory, setLeaveCategory] = useState(LEAVE_CATEGORIES.STANDARD);
               <table className="min-w-full border-collapse text-xs">
                 <thead className="sticky top-0 z-10 bg-white shadow-sm">
                   <tr>
-                    <th className="sticky left-0 z-20 min-w-[180px] bg-white p-2 text-left">Employee</th>
+                    <th className="sticky left-0 z-20 min-w-[220px] bg-white p-2 text-left">Employee</th>
+                    <th className="min-w-[90px] p-2 text-center">Staff No.</th>
+                    <th className="min-w-[110px] p-2 text-center">Dept.</th>
                     <th className="min-w-[70px] p-2 text-center">Ent.</th>
                     <th className="min-w-[90px] p-2 text-center">Std Used</th>
                     <th className="min-w-[70px] p-2 text-center">Except.</th>
@@ -738,7 +809,9 @@ const [leaveCategory, setLeaveCategory] = useState(LEAVE_CATEGORIES.STANDARD);
 
                     return (
                       <tr key={employee.id} className="border-t">
-                        <td className="sticky left-0 z-10 bg-white p-2 font-semibold">{employee.name}</td>
+                        <td className="sticky left-0 z-10 bg-white p-2 font-semibold">{employeeFullName(employee)}</td>
+                        <td className="p-2 text-center">{employee.staff_number || "-"}</td>
+                        <td className="p-2 text-center">{departmentName(employee.department_id)}</td>
                         <td className="p-2 text-center">{employee.entitlement}</td>
                         <td className="p-2 text-center">{standardUsed}</td>
                         <td className="p-2 text-center">{exceptions}</td>
@@ -757,14 +830,10 @@ const [leaveCategory, setLeaveCategory] = useState(LEAVE_CATEGORIES.STANDARD);
                           if (bankName) { cls = "bg-amber-200"; mark = "BH"; }
                           if (booking) {
                             cls = isStandardBooking(booking) ? "bg-emerald-200" : "bg-sky-200";
-                            mark = isStandardBooking(booking) ? "H" : "E";
+                            mark = Number(booking.dayAmount) === 0.5 ? "½" : isStandardBooking(booking) ? "H" : "E";
                           }
 
-                          return (
-                            <td key={iso} className={`h-8 border-l text-center ${cls}`} title={`${employee.name} | ${iso}`}>
-                              {mark}
-                            </td>
-                          );
+                          return <td key={iso} className={`h-8 border-l text-center ${cls}`} title={`${employeeFullName(employee)} | ${iso}`}>{mark}</td>;
                         })}
                       </tr>
                     );
