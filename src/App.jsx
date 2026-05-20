@@ -562,7 +562,7 @@ export default function IrishHolidayPlanner() {
             <button type="submit" className="w-full rounded-xl bg-slate-900 px-3 py-2 text-sm font-medium text-white">Log in</button>
 
             <button type="button" onClick={handleResetPassword} className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-800">
-              Reset password
+              Forgot password
             </button>
           </div>
         </form>
