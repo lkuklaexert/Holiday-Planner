@@ -138,11 +138,12 @@ function isStandardBooking(booking) {
 }
 
 function bookingDaysForEntitlement(booking, bankHolidayMap) {
-  return isStandardBooking(booking) ? countWorkingDays(booking.start, booking.end, bankHolidayMap) : 0;
+  if (!isStandardBooking(booking)) return 0;
+  return countWorkingDays(booking.start, booking.end, bankHolidayMap) * Number(booking.dayAmount || 1);
 }
 
 function bookingTotalWorkingDays(booking, bankHolidayMap) {
-  return countWorkingDays(booking.start, booking.end, bankHolidayMap);
+  return countWorkingDays(booking.start, booking.end, bankHolidayMap) * Number(booking.dayAmount || 1);
 }
 
 function bookingTypeLabel(booking) {
@@ -276,6 +277,7 @@ useEffect(() => {
             exceptionType: h.exception_type,
             paymentStatus: h.payment_status,
             notes: h.notes,
+            dayAmount: Number(h.day_amount || 1),
           })),
         };
       })
@@ -410,6 +412,7 @@ useEffect(() => {
       employee_id: selectedEmployee.id,
       start_date: holidayStart,
       end_date: holidayEnd,
+      day_amount: dayAmount,
       leave_category: leaveCategory,
       exception_type: leaveCategory === LEAVE_CATEGORIES.EXCEPTION ? exceptionType : null,
       payment_status: leaveCategory === LEAVE_CATEGORIES.EXCEPTION ? paymentStatus : "paid",
@@ -424,6 +427,7 @@ useEffect(() => {
 
     resetHolidayPickerToCurrentMonth();
     await loadEmployees();
+    setDayAmount(1);
   }
 
   async function deleteHoliday(employeeId, holidayId) {
@@ -611,6 +615,17 @@ useEffect(() => {
                     <input type="date" value={holidayEnd} onChange={(e) => setHolidayEnd(e.target.value)} className="w-full rounded-xl border px-3 py-2 text-sm" />
                   </div>
                 </div>
+                <div>
+  <label className="text-xs text-slate-600">Day amount</label>
+  <select
+    value={dayAmount}
+    onChange={(e) => setDayAmount(Number(e.target.value))}
+    className="w-full rounded-xl border px-3 py-2 text-sm"
+  >
+    <option value={1}>Full day</option>
+    <option value={0.5}>Half day</option>
+  </select>
+</div>
 
                 <div>
                   <label className="text-xs text-slate-600">Leave category</label>
