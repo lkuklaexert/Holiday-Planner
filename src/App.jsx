@@ -207,6 +207,26 @@ useEffect(() => {
   
     if (error) setLoginError(error.message);
   }
+
+  async function handleResetPassword() {
+    setLoginError("");
+  
+    if (!loginEmail) {
+      setLoginError("Please enter your email first.");
+      return;
+    }
+  
+    const { error } = await supabase.auth.resetPasswordForEmail(loginEmail, {
+      redirectTo: window.location.origin,
+    });
+  
+    if (error) {
+      setLoginError(error.message);
+      return;
+    }
+  
+    alert("Password reset email sent. Please check your inbox.");
+  }
   
   async function handleSetNewPassword(e) {
     e.preventDefault();
@@ -458,6 +478,13 @@ useEffect(() => {
             >
               Log in
             </button>
+            <button
+  type="button"
+  onClick={handleResetPassword}
+  className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-800"
+>
+  Reset password
+</button>
           </div>
         </form>
       </div>
