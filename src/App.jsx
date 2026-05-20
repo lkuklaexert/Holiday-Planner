@@ -198,7 +198,7 @@ useEffect(() => {
 
   async function handleLogin(e) {
     e.preventDefault();
-    setLoginError("");async function handleLogin(e) {
+    setLoginError("");
   
     const { error } = await supabase.auth.signInWithPassword({
       email: loginEmail,
@@ -207,7 +207,7 @@ useEffect(() => {
   
     if (error) setLoginError(error.message);
   }
-
+  
   async function handleSetNewPassword(e) {
     e.preventDefault();
     setLoginError("");
@@ -222,6 +222,7 @@ useEffect(() => {
     }
   
     alert("Password updated successfully.");
+    setLoginPassword("");
   }
 
   async function loadEmployees() {
@@ -481,16 +482,6 @@ useEffect(() => {
   >
     Log out
   </Button>
-  <div className="flex flex-wrap items-center gap-2">
-
-  <Button
-    variant="outline"
-    onClick={async () => {
-      await supabase.auth.signOut();
-    }}
-  >
-    Log out
-  </Button>
 
   <form onSubmit={handleSetNewPassword} className="flex items-center gap-2">
     <input
@@ -511,12 +502,16 @@ useEffect(() => {
   </form>
 
   <Icon label="calendar" />
+  <label className="text-sm font-medium">Year</label>
+  <input
+    type="number"
+    value={year}
+    onChange={(e) => setYear(Number(e.target.value))}
+    className="w-28 rounded-xl border px-3 py-2 text-sm"
+  />
+</div>
 
-  <Icon label="calendar" />
-            <label className="text-sm font-medium">Year</label>
-            <input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} className="w-28 rounded-xl border px-3 py-2 text-sm" />
           </div>
-        </div>
 
         <div className="grid gap-4 lg:grid-cols-[400px_1fr]">
           <div className="space-y-4">
