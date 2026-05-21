@@ -161,6 +161,7 @@ export default function IrishHolidayPlanner() {
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [loginError, setLoginError] = useState("");
+  const [employeeError, setEmployeeError] = useState("");
 
   const [year, setYear] = useState(currentYear);
   const [employees, setEmployees] = useState([]);
@@ -414,10 +415,12 @@ export default function IrishHolidayPlanner() {
     const lastName = newLastName.trim();
     const staffNumber = newStaffNumber.trim();
 
-    if (!firstName || !lastName) {
-      alert("First name and last name are required.");
+    if (!firstName || !lastName || !staffNumber || !newDepartmentId) {
+      setEmployeeError("First name, last name, staff number and department are required.");
       return;
     }
+    
+    setEmployeeError("");
 
     if (staffNumber && !/^[0-9]{1,10}$/.test(staffNumber)) {
       alert("Staff number must be up to 10 digits only.");
@@ -613,6 +616,11 @@ export default function IrishHolidayPlanner() {
                   <option value="">No department</option>
                   {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
                 </select>
+                {employeeError && (
+  <p className="text-sm text-red-600">
+    {employeeError}
+  </p>
+)}
 
                 <Button onClick={addEmployee} className="w-full"><Icon label="plus" /> Add employee</Button>
 
