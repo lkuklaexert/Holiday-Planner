@@ -162,6 +162,8 @@ export default function IrishHolidayPlanner() {
   const [loginPassword, setLoginPassword] = useState("");
   const [loginError, setLoginError] = useState("");
   const [employeeError, setEmployeeError] = useState("");
+  const [departmentFilter, setDepartmentFilter] = useState("all");
+const [nameSort, setNameSort] = useState("az");
 
   const [year, setYear] = useState(currentYear);
   const [employees, setEmployees] = useState([]);
@@ -795,6 +797,34 @@ const visibleEmployees = useMemo(() => {
           </div>
 
           <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
+          <div className="flex flex-wrap items-center gap-3 border-b p-4 text-sm">
+  <label className="font-medium">Department</label>
+
+  <select
+    value={departmentFilter}
+    onChange={(e) => setDepartmentFilter(e.target.value)}
+    className="rounded-xl border px-3 py-2 text-sm"
+  >
+    <option value="all">All departments</option>
+
+    {departments.map((department) => (
+      <option key={department.id} value={department.id}>
+        {department.name}
+      </option>
+    ))}
+  </select>
+
+  <label className="font-medium">Sort</label>
+
+  <select
+    value={nameSort}
+    onChange={(e) => setNameSort(e.target.value)}
+    className="rounded-xl border px-3 py-2 text-sm"
+  >
+    <option value="az">Name A → Z</option>
+    <option value="za">Name Z → A</option>
+  </select>
+</div>
             <div className="flex flex-wrap gap-3 border-b p-4 text-xs">
               <span className="rounded-full bg-white px-3 py-1 ring-1 ring-slate-200">Weekday</span>
               <span className="rounded-full bg-slate-200 px-3 py-1">Weekend</span>
@@ -832,7 +862,7 @@ const visibleEmployees = useMemo(() => {
                 </thead>
 
                 <tbody>
-                  {employees.map((employee) => {
+                  {visibleEmployees.map((employee) => {
                     const standardUsed = usedDays(employee);
                     const exceptions = exceptionDays(employee);
                     const remaining = employee.entitlement - standardUsed;
