@@ -191,9 +191,32 @@ export default function IrishHolidayPlanner() {
   const [editDepartmentId, setEditDepartmentId] = useState("");
   const [editEntitlement, setEditEntitlement] = useState(25);
 
+
+  // sorting calendar overview
+  const [departmentFilter, setDepartmentFilter] = useState("all");
+const [nameSort, setNameSort] = useState("az");
+
   const bankHolidayMap = useMemo(() => getIrishBankHolidays(Number(year)), [year]);
   const yearDays = useMemo(() => getDaysInYear(Number(year)), [year]);
   const selectedEmployee = employees.find((e) => e.id === selectedEmployeeId) || employees[0];
+
+const visibleEmployees = useMemo(() => {
+  return employees
+    .filter((employee) => {
+      if (departmentFilter === "all") return true;
+      return employee.department_id === departmentFilter;
+    })
+    .sort((a, b) => {
+      const nameA = employeeFullName(a).toLowerCase();
+      const nameB = employeeFullName(b).toLowerCase();
+
+      if (nameSort === "za") {
+        return nameB.localeCompare(nameA);
+      }
+
+      return nameA.localeCompare(nameB);
+    });
+}, [employees, departmentFilter, nameSort, departments]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
