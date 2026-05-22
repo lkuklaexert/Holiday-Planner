@@ -193,11 +193,6 @@ const [nameSort, setNameSort] = useState("az");
   const [editDepartmentId, setEditDepartmentId] = useState("");
   const [editEntitlement, setEditEntitlement] = useState(25);
 
-
-  // sorting calendar overview
-  const [departmentFilter, setDepartmentFilter] = useState("all");
-const [nameSort, setNameSort] = useState("az");
-
   const bankHolidayMap = useMemo(() => getIrishBankHolidays(Number(year)), [year]);
   const yearDays = useMemo(() => getDaysInYear(Number(year)), [year]);
   const selectedEmployee = employees.find((e) => e.id === selectedEmployeeId) || employees[0];
