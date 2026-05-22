@@ -238,7 +238,7 @@ const visibleEmployees = useMemo(() => {
 
       return nameA.localeCompare(nameB);
     });
-}, [employees, departmentFilter, nameSort, departments]);
+  }, [employees, departmentFilter, nameSort, holidayWindowFilter, departments]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
@@ -605,7 +605,7 @@ const visibleEmployees = useMemo(() => {
     const approxColumnWidth = 34;
     const staticColumnsWidth = 650;
   
-    el.scrollLeft = staticColumnsWidth + dayIndex * approxColumnWidth;
+    el.scrollLeft = dayIndex * approxColumnWidth;
   }
 
   if (!session) {
