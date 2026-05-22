@@ -216,7 +216,9 @@ const visibleEmployees = useMemo(() => {
   
       const hasUpcomingHoliday = employee.holidays.some((holiday) => {
         const holidayStart = fromISO(holiday.start);
-        return holidayStart >= today && holidayStart <= future;
+        const holidayEnd = fromISO(holiday.end);
+      
+        return holidayStart <= future && holidayEnd >= today;
       });
   
       if (!hasUpcomingHoliday) {
@@ -592,6 +594,19 @@ const visibleEmployees = useMemo(() => {
 
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const currentMonth = new Date().getMonth();
+  function scrollCalendarToToday() {
+    const el = document.getElementById("calendar-scroll-container");
+    if (!el) return;
+  
+    const today = new Date();
+    const startOfYear = new Date(Number(year), 0, 1);
+    const dayIndex = Math.floor((today - startOfYear) / (24 * 60 * 60 * 1000));
+  
+    const approxColumnWidth = 34;
+    const staticColumnsWidth = 650;
+  
+    el.scrollLeft = staticColumnsWidth + dayIndex * approxColumnWidth;
+  }
 
   if (!session) {
     return (
@@ -844,10 +859,16 @@ const visibleEmployees = useMemo(() => {
   </select>
   <label className="flex items-center gap-2 font-medium">
   <input
-    type="checkbox"
-    checked={holidayWindowFilter}
-    onChange={(e) => setHolidayWindowFilter(e.target.checked)}
-  />
+  type="checkbox"
+  checked={holidayWindowFilter}
+  onChange={(e) => {
+    setHolidayWindowFilter(e.target.checked);
+
+    if (e.target.checked) {
+      setTimeout(scrollCalendarToToday, 50);
+    }
+  }}
+/>
 
   Upcoming holidays (30 days)
 </label>
@@ -860,8 +881,8 @@ const visibleEmployees = useMemo(() => {
               <span className="rounded-full bg-sky-200 px-3 py-1">Exception</span>
             </div>
 
-            <div className="overflow-auto" ref={(el) => {
-              if (el && !el.dataset.scrolled) {
+            <div id="calendar-scroll-container" className="overflow-auto" ref={(el) => {
+              if (el && !el.dataset.scrolled && !holidayWindowFilter) {
                 const approxColumnWidth = 34;
                 const staticColumnsWidth = 490;
                 el.scrollLeft = staticColumnsWidth + (currentMonth * 31 * approxColumnWidth);
