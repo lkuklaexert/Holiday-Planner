@@ -605,7 +605,7 @@ const visibleEmployees = useMemo(() => {
     const approxColumnWidth = 35;
     const staticColumnsWidth = 650;
   
-    el.scrollLeft = Math.max(0, (dayIndex * approxColumnWidth) - 20);
+    el.scrollLeft = Math.max(0, (dayIndex * approxColumnWidth) - 60);
   }
 
   if (!session) {
@@ -946,7 +946,7 @@ const visibleEmployees = useMemo(() => {
                           return (
                             <td
                               key={iso}
-                              className={`h-8 border-l text-center ${cls} ${isToday ? "ring-2 ring-red-500 ring-inset font-bold" : ""}`}
+                              className={`h-8 border-l text-center ${isToday ? "bg-orange-200 font-bold" : cls}`}
                               title={`${employeeFullName(employee)} | ${iso}`}
                             >
                               {mark}
