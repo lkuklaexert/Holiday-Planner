@@ -605,7 +605,7 @@ const visibleEmployees = useMemo(() => {
     const approxColumnWidth = 35;
     const staticColumnsWidth = 650;
   
-    el.scrollLeft = dayIndex * approxColumnWidth;
+    el.scrollLeft = Math.max(0, (dayIndex * approxColumnWidth) - 20);
   }
 
   if (!session) {
@@ -931,6 +931,7 @@ const visibleEmployees = useMemo(() => {
                           const isWeekend = date.getDay() === 0 || date.getDay() === 6;
                           const bankName = bankHolidayMap.get(iso);
                           const booking = employeeHolidayMap.get(iso);
+                          const isToday = iso === toISO(new Date());
 
                           let cls = "bg-white";
                           let mark = "";
@@ -942,7 +943,15 @@ const visibleEmployees = useMemo(() => {
                             mark = Number(booking.dayAmount) === 0.5 ? "½" : isStandardBooking(booking) ? "H" : "E";
                           }
 
-                          return <td key={iso} className={`h-8 border-l text-center ${cls}`} title={`${employeeFullName(employee)} | ${iso}`}>{mark}</td>;
+                          return (
+                            <td
+                              key={iso}
+                              className={`h-8 border-l text-center ${cls} ${isToday ? "ring-2 ring-red-500 ring-inset font-bold" : ""}`}
+                              title={`${employeeFullName(employee)} | ${iso}`}
+                            >
+                              {mark}
+                            </td>
+                          );
                         })}
                       </tr>
                     );
