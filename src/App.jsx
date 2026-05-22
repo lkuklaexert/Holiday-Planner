@@ -163,6 +163,7 @@ export default function IrishHolidayPlanner() {
   const [loginError, setLoginError] = useState("");
   const [employeeError, setEmployeeError] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("all");
+  const [holidayWindowFilter, setHolidayWindowFilter] = useState(false);
 const [nameSort, setNameSort] = useState("az");
 
   const [year, setYear] = useState(currentYear);
@@ -199,10 +200,32 @@ const [nameSort, setNameSort] = useState("az");
 
 const visibleEmployees = useMemo(() => {
   return employees
-    .filter((employee) => {
-      if (departmentFilter === "all") return true;
-      return employee.department_id === departmentFilter;
-    })
+  .filter((employee) => {
+    // Department filter
+    if (
+      departmentFilter !== "all" &&
+      employee.department_id !== departmentFilter
+    ) {
+      return false;
+    }
+  
+    // Upcoming holiday filter
+    if (holidayWindowFilter) {
+      const today = new Date();
+      const future = addDays(today, 30);
+  
+      const hasUpcomingHoliday = employee.holidays.some((holiday) => {
+        const holidayStart = fromISO(holiday.start);
+        return holidayStart >= today && holidayStart <= future;
+      });
+  
+      if (!hasUpcomingHoliday) {
+        return false;
+      }
+    }
+  
+    return true;
+  })
     .sort((a, b) => {
       const nameA = employeeFullName(a).toLowerCase();
       const nameB = employeeFullName(b).toLowerCase();
@@ -819,6 +842,15 @@ const visibleEmployees = useMemo(() => {
     <option value="az">Name A → Z</option>
     <option value="za">Name Z → A</option>
   </select>
+  <label className="flex items-center gap-2 font-medium">
+  <input
+    type="checkbox"
+    checked={holidayWindowFilter}
+    onChange={(e) => setHolidayWindowFilter(e.target.checked)}
+  />
+
+  Upcoming holidays (30 days)
+</label>
 </div>
             <div className="flex flex-wrap gap-3 border-b p-4 text-xs">
               <span className="rounded-full bg-white px-3 py-1 ring-1 ring-slate-200">Weekday</span>
