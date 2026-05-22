@@ -605,7 +605,7 @@ const visibleEmployees = useMemo(() => {
     const approxColumnWidth = 35;
     const staticColumnsWidth = 650;
   
-    el.scrollLeft = Math.max(0, (dayIndex * approxColumnWidth) + 333);
+    el.scrollLeft = Math.max(0, (dayIndex * approxColumnWidth) + 298);
   }
 
   if (!session) {
