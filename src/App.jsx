@@ -602,7 +602,7 @@ const visibleEmployees = useMemo(() => {
     const startOfYear = new Date(Number(year), 0, 1);
     const dayIndex = Math.floor((today - startOfYear) / (24 * 60 * 60 * 1000));
   
-    const approxColumnWidth = 34;
+    const approxColumnWidth = 35;
     const staticColumnsWidth = 650;
   
     el.scrollLeft = dayIndex * approxColumnWidth;
