@@ -603,9 +603,12 @@ const visibleEmployees = useMemo(() => {
     const dayIndex = Math.floor((today - startOfYear) / (24 * 60 * 60 * 1000));
   
     const approxColumnWidth = 35;
-    const staticColumnsWidth = 650;
+    const staticColumnsWidth = 368;
   
-    el.scrollLeft = Math.max(0, (dayIndex * approxColumnWidth) + 368);
+    el.scrollLeft = Math.max(
+      0,
+      (dayIndex * approxColumnWidth) + 368
+    );
   }
 
   if (!session) {
