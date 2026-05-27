@@ -689,6 +689,7 @@ const visibleEmployees = useMemo(() => {
         {activeView === "planner" && (
         <div className="grid gap-4 lg:grid-cols-[430px_1fr]">
           <div className="space-y-4">
+          {activeView === "employees" && (
             <Card>
               <CardContent className="space-y-3 p-4">
                 <div className="flex items-center gap-2">
@@ -763,7 +764,7 @@ const visibleEmployees = useMemo(() => {
                 </div>
               </CardContent>
             </Card>
-
+)}
             <Card>
               <CardContent className="space-y-3 p-4">
                 <h2 className="font-semibold">Departments Admin</h2>
@@ -781,6 +782,7 @@ const visibleEmployees = useMemo(() => {
                 </div>
               </CardContent>
             </Card>
+            
 
             <Card>
               <CardContent className="space-y-3 p-4">
