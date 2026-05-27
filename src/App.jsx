@@ -686,10 +686,8 @@ const visibleEmployees = useMemo(() => {
             <input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} className="w-28 rounded-xl border px-3 py-2 text-sm" />
           </div>
         </div>
-        {activeView === "planner" && (
-        <div className="grid gap-4 lg:grid-cols-[430px_1fr]">
+        {activeView === "employees" && (
           <div className="space-y-4">
-          {activeView === "employees" && (
             <Card>
               <CardContent className="space-y-3 p-4">
                 <div className="flex items-center gap-2">
@@ -764,8 +762,11 @@ const visibleEmployees = useMemo(() => {
                 </div>
               </CardContent>
             </Card>
+</div>
 )}
+
 {activeView === "departments" && (
+<div className="space-y-4">
             <Card>
               <CardContent className="space-y-3 p-4">
                 <h2 className="font-semibold">Departments Admin</h2>
@@ -783,10 +784,13 @@ const visibleEmployees = useMemo(() => {
                 </div>
               </CardContent>
             </Card>
-            )}
-            
+            </div>
+)}
 
-            <Card>
+{activeView === "bookings" && (
+<div className="space-y-4">
+
+<Card>
               <CardContent className="space-y-3 p-4">
                 <h2 className="font-semibold">Add leave / holiday</h2>
 
@@ -862,10 +866,11 @@ const visibleEmployees = useMemo(() => {
                     </div>
                   )}
                 </CardContent>
-              </Card>
+                </Card>
             )}
           </div>
-
+)}
+{activeView === "planner" && (
           <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
           <div className="flex flex-wrap items-center gap-3 border-b p-4 text-sm">
   <label className="font-medium">Department</label>
@@ -995,8 +1000,7 @@ const visibleEmployees = useMemo(() => {
                   })}
                 </tbody>
               </table>
-            </div>
-          </div>
+                 </div>
         </div>
 )}
         <Card>
