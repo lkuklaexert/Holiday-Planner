@@ -686,7 +686,7 @@ const visibleEmployees = useMemo(() => {
             <input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} className="w-28 rounded-xl border px-3 py-2 text-sm" />
           </div>
         </div>
-
+        {activeView === "planner" && (
         <div className="grid gap-4 lg:grid-cols-[430px_1fr]">
           <div className="space-y-4">
             <Card>
@@ -994,7 +994,7 @@ const visibleEmployees = useMemo(() => {
             </div>
           </div>
         </div>
-
+)}
         <Card>
           <CardContent className="p-4">
             <h2 className="mb-2 font-semibold">Irish bank holidays included for {year}</h2>
