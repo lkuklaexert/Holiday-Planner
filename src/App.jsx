@@ -765,6 +765,7 @@ const visibleEmployees = useMemo(() => {
               </CardContent>
             </Card>
 )}
+{activeView === "departments" && (
             <Card>
               <CardContent className="space-y-3 p-4">
                 <h2 className="font-semibold">Departments Admin</h2>
@@ -782,6 +783,7 @@ const visibleEmployees = useMemo(() => {
                 </div>
               </CardContent>
             </Card>
+            )}
             
 
             <Card>
