@@ -165,6 +165,7 @@ export default function IrishHolidayPlanner() {
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [holidayWindowFilter, setHolidayWindowFilter] = useState(false);
 const [nameSort, setNameSort] = useState("az");
+const [activeView, setActiveView] = useState("planner");
 
   const [year, setYear] = useState(currentYear);
   const [employees, setEmployees] = useState([]);
@@ -637,6 +638,35 @@ const visibleEmployees = useMemo(() => {
   return (
     <div className="min-h-screen bg-slate-50 p-4 text-slate-900">
       <div className="mx-auto max-w-[1600px] space-y-4">
+      <div className="flex flex-wrap gap-2 rounded-2xl bg-white p-3 shadow-sm">
+  <Button
+    variant={activeView === "planner" ? "primary" : "outline"}
+    onClick={() => setActiveView("planner")}
+  >
+    Planner
+  </Button>
+
+  <Button
+    variant={activeView === "employees" ? "primary" : "outline"}
+    onClick={() => setActiveView("employees")}
+  >
+    Employees
+  </Button>
+
+  <Button
+    variant={activeView === "departments" ? "primary" : "outline"}
+    onClick={() => setActiveView("departments")}
+  >
+    Departments
+  </Button>
+
+  <Button
+    variant={activeView === "bookings" ? "primary" : "outline"}
+    onClick={() => setActiveView("bookings")}
+  >
+    Bookings
+  </Button>
+</div>
         <div className="flex flex-col gap-3 rounded-2xl bg-white p-5 shadow-sm md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Irish Employee Holiday Planner</h1>
