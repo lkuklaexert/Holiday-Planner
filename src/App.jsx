@@ -166,6 +166,7 @@ export default function IrishHolidayPlanner() {
   const [holidayWindowFilter, setHolidayWindowFilter] = useState(false);
 const [nameSort, setNameSort] = useState("az");
 const [activeView, setActiveView] = useState("planner");
+const [bookingSearch, setBookingSearch] = useState("");
 
   const [year, setYear] = useState(currentYear);
   const [employees, setEmployees] = useState([]);
@@ -845,7 +846,15 @@ const visibleEmployees = useMemo(() => {
             <Card>
   <CardContent className="p-4">
     <h2 className="mb-4 font-semibold">All Bookings</h2>
-
+    <div className="mb-4">
+  <input
+    type="text"
+    placeholder="Search employee..."
+    value={bookingSearch}
+    onChange={(e) => setBookingSearch(e.target.value)}
+    className="w-full rounded-xl border px-3 py-2 text-sm"
+  />
+</div>
     <div className="overflow-auto">
       <table className="min-w-full border-collapse text-sm">
         <thead>
@@ -863,7 +872,13 @@ const visibleEmployees = useMemo(() => {
         </thead>
 
         <tbody>
-          {employees.flatMap((employee) =>
+        {employees
+  .filter((employee) =>
+    employeeFullName(employee)
+      .toLowerCase()
+      .includes(bookingSearch.toLowerCase())
+  )
+  .flatMap((employee) =>
             employee.holidays.map((holiday) => (
               <tr key={holiday.id} className="border-b">
                 <td className="p-2">
