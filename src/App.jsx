@@ -1003,6 +1003,7 @@ const visibleEmployees = useMemo(() => {
                  </div>
         </div>
 )}
+{activeView === "planner" && (
         <Card>
           <CardContent className="p-4">
             <h2 className="mb-2 font-semibold">Irish bank holidays included for {year}</h2>
@@ -1015,6 +1016,7 @@ const visibleEmployees = useMemo(() => {
             </div>
           </CardContent>
         </Card>
+        )}
       </div>
     </div>
   );
