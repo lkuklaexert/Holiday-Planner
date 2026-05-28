@@ -842,32 +842,84 @@ const visibleEmployees = useMemo(() => {
               </CardContent>
             </Card>
 
-            {selectedEmployee && (
-              <Card>
-                <CardContent className="space-y-3 p-4">
-                  <h2 className="font-semibold">Booked leave: {employeeFullName(selectedEmployee)}</h2>
+            <Card>
+  <CardContent className="p-4">
+    <h2 className="mb-4 font-semibold">All Bookings</h2>
 
-                  {selectedEmployee.holidays.length === 0 ? (
-                    <p className="text-sm text-slate-500">No bookings yet.</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {selectedEmployee.holidays.map((h) => (
-                        <div key={h.id} className="rounded-xl border bg-white p-2 text-sm">
-                          <div className="flex items-start justify-between gap-2">
-                            <div>
-                              <p className="font-medium">{h.start} to {h.end} ({bookingTotalWorkingDays(h, bankHolidayMap)} days)</p>
-                              <p className="text-xs text-slate-600">Type: {bookingTypeLabel(h)} | Paid: {paymentStatusLabel(h)} | Deducted: {bookingDaysForEntitlement(h, bankHolidayMap)}</p>
-                              {h.notes && <p className="mt-1 text-xs text-slate-500">Note: {h.notes}</p>}
-                            </div>
-                            <Button size="sm" variant="ghost" onClick={() => deleteHoliday(selectedEmployee.id, h.id)}><Icon label="trash" /></Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+    <div className="overflow-auto">
+      <table className="min-w-full border-collapse text-sm">
+        <thead>
+          <tr className="border-b bg-slate-100">
+            <th className="p-2 text-left">Employee</th>
+            <th className="p-2 text-left">Department</th>
+            <th className="p-2 text-left">Start</th>
+            <th className="p-2 text-left">End</th>
+            <th className="p-2 text-center">Days</th>
+            <th className="p-2 text-left">Type</th>
+            <th className="p-2 text-left">Paid</th>
+            <th className="p-2 text-left">Notes</th>
+            <th className="p-2 text-center">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {employees.flatMap((employee) =>
+            employee.holidays.map((holiday) => (
+              <tr key={holiday.id} className="border-b">
+                <td className="p-2">
+                  {employeeFullName(employee)}
+                </td>
+
+                <td className="p-2">
+                  {departmentName(employee.department_id)}
+                </td>
+
+                <td className="p-2">
+                  {holiday.start}
+                </td>
+
+                <td className="p-2">
+                  {holiday.end}
+                </td>
+
+                <td className="p-2 text-center">
+                  {bookingTotalWorkingDays(
+                    holiday,
+                    bankHolidayMap
                   )}
-                </CardContent>
-                </Card>
-            )}
+                </td>
+
+                <td className="p-2">
+                  {bookingTypeLabel(holiday)}
+                </td>
+
+                <td className="p-2">
+                  {paymentStatusLabel(holiday)}
+                </td>
+
+                <td className="p-2">
+                  {holiday.notes || "-"}
+                </td>
+
+                <td className="p-2 text-center">
+                  <Button
+                    size="sm"
+                    variant="danger"
+                    onClick={() =>
+                      deleteHoliday(employee.id, holiday.id)
+                    }
+                  >
+                    Delete
+                  </Button>
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
+  </CardContent>
+</Card>
           </div>
 )}
 {activeView === "planner" && (
