@@ -846,7 +846,7 @@ const visibleEmployees = useMemo(() => {
             <Card>
   <CardContent className="p-4">
     <h2 className="mb-4 font-semibold">All Bookings</h2>
-    <div className="mb-4">
+    <div className="mb-4 grid gap-2 md:grid-cols-[1fr_260px]">
   <input
     type="text"
     placeholder="Search employee..."
@@ -854,6 +854,19 @@ const visibleEmployees = useMemo(() => {
     onChange={(e) => setBookingSearch(e.target.value)}
     className="w-full rounded-xl border px-3 py-2 text-sm"
   />
+
+  <select
+    value={departmentFilter}
+    onChange={(e) => setDepartmentFilter(e.target.value)}
+    className="w-full rounded-xl border px-3 py-2 text-sm"
+  >
+    <option value="all">All departments</option>
+    {departments.map((department) => (
+      <option key={department.id} value={department.id}>
+        {department.name}
+      </option>
+    ))}
+  </select>
 </div>
     <div className="overflow-auto">
       <table className="min-w-full border-collapse text-sm">
@@ -873,11 +886,17 @@ const visibleEmployees = useMemo(() => {
 
         <tbody>
         {employees
-  .filter((employee) =>
-    employeeFullName(employee)
+  .filter((employee) => {
+    const matchesSearch = employeeFullName(employee)
       .toLowerCase()
-      .includes(bookingSearch.toLowerCase())
-  )
+      .includes(bookingSearch.toLowerCase());
+
+    const matchesDepartment =
+      departmentFilter === "all" ||
+      employee.department_id === departmentFilter;
+
+    return matchesSearch && matchesDepartment;
+  })
   .flatMap((employee) =>
             employee.holidays.map((holiday) => (
               <tr key={holiday.id} className="border-b">
