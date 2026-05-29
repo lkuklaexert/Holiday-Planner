@@ -167,6 +167,7 @@ export default function IrishHolidayPlanner() {
 const [nameSort, setNameSort] = useState("az");
 const [activeView, setActiveView] = useState("planner");
 const [bookingSearch, setBookingSearch] = useState("");
+const [bookingLeaveTypeFilter, setBookingLeaveTypeFilter] = useState("all");
 
   const [year, setYear] = useState(currentYear);
   const [employees, setEmployees] = useState([]);
@@ -846,7 +847,7 @@ const visibleEmployees = useMemo(() => {
             <Card>
   <CardContent className="p-4">
     <h2 className="mb-4 font-semibold">All Bookings</h2>
-    <div className="mb-4 grid gap-2 md:grid-cols-[1fr_260px]">
+    <div className="mb-4 grid gap-2 md:grid-cols-[1fr_240px_240px]">
   <input
     type="text"
     placeholder="Search employee..."
@@ -867,6 +868,15 @@ const visibleEmployees = useMemo(() => {
       </option>
     ))}
   </select>
+  <select
+  value={bookingLeaveTypeFilter}
+  onChange={(e) => setBookingLeaveTypeFilter(e.target.value)}
+  className="w-full rounded-xl border px-3 py-2 text-sm"
+>
+  <option value="all">All leave types</option>
+  <option value={LEAVE_CATEGORIES.STANDARD}>Standard Holiday</option>
+  <option value={LEAVE_CATEGORIES.EXCEPTION}>Exception</option>
+</select>
 </div>
     <div className="overflow-auto">
       <table className="min-w-full border-collapse text-sm">
@@ -896,9 +906,15 @@ const visibleEmployees = useMemo(() => {
       employee.department_id === departmentFilter;
 
     return matchesSearch && matchesDepartment;
+    
   })
   .flatMap((employee) =>
-            employee.holidays.map((holiday) => (
+  employee.holidays
+  .filter((holiday) => {
+    if (bookingLeaveTypeFilter === "all") return true;
+    return holiday.leaveCategory === bookingLeaveTypeFilter;
+  })
+  .map((holiday) => (
               <tr key={holiday.id} className="border-b">
                 <td className="p-2">
                   {employeeFullName(employee)}
