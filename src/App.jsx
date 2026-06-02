@@ -173,6 +173,53 @@ function paymentStatusLabel(booking) {
   return isStandardBooking(booking) ? "Paid" : booking.paymentStatus === "unpaid" ? "Unpaid" : "Paid";
 }
 
+function leaveTypeColorClass(booking) {
+  switch (booking.leaveCategory) {
+    case "annual_leave":
+      return "bg-emerald-200";
+
+    case "sickness_certified":
+      return "bg-red-200";
+
+    case "sickness_uncertified":
+      return "bg-orange-200";
+
+    case "statutory_sick_leave":
+      return "bg-rose-200";
+
+    case "compassionate_leave":
+    case "bereavement_leave":
+      return "bg-purple-200";
+
+    case "jury_service":
+      return "bg-indigo-200";
+
+    case "maternity_leave":
+    case "paternity_leave":
+    case "parental_leave":
+    case "adoption_leave":
+    case "parents_leave":
+      return "bg-pink-200";
+
+    case "study_leave":
+      return "bg-cyan-200";
+
+    case "force_majeure":
+      return "bg-yellow-200";
+
+    case "suspension":
+    case "garden_leave":
+    case "other_unpaid":
+      return "bg-slate-300";
+
+    case "remote_working_abroad":
+      return "bg-blue-200";
+
+    default:
+      return "bg-sky-200";
+  }
+}
+
 export default function IrishHolidayPlanner() {
   const currentYear = new Date().getFullYear();
   const defaultCurrentDate = toISO(new Date());
@@ -1086,8 +1133,13 @@ exceptionType: h.exception_type,
               <span className="rounded-full bg-white px-3 py-1 ring-1 ring-slate-200">Weekday</span>
               <span className="rounded-full bg-slate-200 px-3 py-1">Weekend</span>
               <span className="rounded-full bg-amber-200 px-3 py-1">Irish bank holiday</span>
-              <span className="rounded-full bg-emerald-200 px-3 py-1">Standard holiday</span>
-              <span className="rounded-full bg-sky-200 px-3 py-1">Exception</span>
+              <span className="rounded-full bg-emerald-200 px-3 py-1">Annual Leave</span>
+<span className="rounded-full bg-red-200 px-3 py-1">Certified Sick</span>
+<span className="rounded-full bg-orange-200 px-3 py-1">Uncertified Sick</span>
+<span className="rounded-full bg-purple-200 px-3 py-1">Compassionate / Bereavement</span>
+<span className="rounded-full bg-indigo-200 px-3 py-1">Jury Service</span>
+<span className="rounded-full bg-pink-200 px-3 py-1">Family Leave</span>
+<span className="rounded-full bg-sky-200 px-3 py-1">Other Leave</span>
             </div>
 
             <div id="calendar-scroll-container" className="overflow-auto" ref={(el) => {
@@ -1148,8 +1200,8 @@ exceptionType: h.exception_type,
                           if (isWeekend) cls = "bg-slate-200";
                           if (bankName) { cls = "bg-amber-200"; mark = "BH"; }
                           if (booking) {
-                            cls = isStandardBooking(booking) ? "bg-emerald-200" : "bg-sky-200";
-                            mark = Number(booking.dayAmount) === 0.5 ? "½" : isStandardBooking(booking) ? "H" : "E";
+                            cls = leaveTypeColorClass(booking);
+                            mark = Number(booking.dayAmount) === 0.5 ? "½" : isStandardBooking(booking) ? "H" : "L";
                           }
 
                           return (
