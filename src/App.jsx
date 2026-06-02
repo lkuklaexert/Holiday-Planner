@@ -656,8 +656,8 @@ exceptionType: h.exception_type,
       end_date: holidayEnd,
       day_amount: dayAmount,
       leave_category: leaveCategory,
-      exception_type: leaveCategory === LEAVE_CATEGORIES.EXCEPTION ? exceptionType : null,
-      payment_status: leaveCategory === LEAVE_CATEGORIES.EXCEPTION ? paymentStatus : "paid",
+exception_type: null,
+payment_status: paymentStatus,
       notes: holidayNotes.trim(),
     });
 
@@ -992,24 +992,20 @@ const annualLeaveDaysBooked = employees.reduce((sum, employee) => {
 
                 <div>
                   <label className="text-xs text-slate-600">Leave category</label>
-                  <select value={leaveCategory} onChange={(e) => setLeaveCategory(e.target.value)} className="w-full rounded-xl border px-3 py-2 text-sm">
-                    <option value={LEAVE_CATEGORIES.STANDARD}>Standard Holiday Entitlement</option>
-                    <option value={LEAVE_CATEGORIES.EXCEPTION}>Exception</option>
-                  </select>
+                  <select
+  value={leaveCategory}
+  onChange={(e) => setLeaveCategory(e.target.value)}
+  className="w-full rounded-xl border px-3 py-2 text-sm"
+>
+  {LEAVE_TYPES.map((type) => (
+    <option key={type.value} value={type.value}>
+      {type.label}
+    </option>
+  ))}
+</select>
                 </div>
 
-                {leaveCategory === LEAVE_CATEGORIES.EXCEPTION && (
-                  <>
-                    <select value={exceptionType} onChange={(e) => setExceptionType(e.target.value)} className="w-full rounded-xl border px-3 py-2 text-sm">
-                      {EXCEPTION_TYPES.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
-                    </select>
-
-                    <select value={paymentStatus} onChange={(e) => setPaymentStatus(e.target.value)} className="w-full rounded-xl border px-3 py-2 text-sm">
-                      <option value="paid">Paid</option>
-                      <option value="unpaid">Unpaid</option>
-                    </select>
-                  </>
-                )}
+                
 
                 <textarea value={holidayNotes} onChange={(e) => setHolidayNotes(e.target.value)} className="min-h-[70px] w-full rounded-xl border px-3 py-2 text-sm" placeholder="Optional note" />
                 <Button onClick={addHoliday} className="w-full" disabled={!selectedEmployee}>Add booking</Button>
