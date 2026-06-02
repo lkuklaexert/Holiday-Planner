@@ -189,6 +189,7 @@ const [activeView, setActiveView] = useState("planner");
 const [bookingSearch, setBookingSearch] = useState("");
 const [bookingLeaveTypeFilter, setBookingLeaveTypeFilter] = useState("all");
 const [bookingDateStatusFilter, setBookingDateStatusFilter] = useState("all");
+const [bookingPaidStatusFilter, setBookingPaidStatusFilter] = useState("all");
 
   const [year, setYear] = useState(currentYear);
   const [employees, setEmployees] = useState([]);
@@ -871,7 +872,7 @@ exceptionType: h.exception_type,
             <Card>
   <CardContent className="p-4">
     <h2 className="mb-4 font-semibold">All Bookings</h2>
-    <div className="mb-4 grid gap-2 md:grid-cols-[1fr_220px_220px_220px]">
+    <div className="mb-4 grid gap-2 md:grid-cols-[1fr_200px_200px_200px_200px]">
   <input
     type="text"
     placeholder="Search employee..."
@@ -910,6 +911,15 @@ exceptionType: h.exception_type,
   <option value="current">Currently on leave</option>
   <option value="future">Future bookings</option>
   <option value="past">Past bookings</option>
+</select>
+<select
+  value={bookingPaidStatusFilter}
+  onChange={(e) => setBookingPaidStatusFilter(e.target.value)}
+  className="w-full rounded-xl border px-3 py-2 text-sm"
+>
+  <option value="all">All paid statuses</option>
+  <option value="paid">Paid</option>
+  <option value="unpaid">Unpaid</option>
 </select>
 </div>
     <div className="overflow-auto">
@@ -963,7 +973,11 @@ exceptionType: h.exception_type,
       (bookingDateStatusFilter === "past" &&
         holidayEnd < today);
 
-    return matchesLeaveType && matchesDateStatus;
+        const matchesPaidStatus =
+  bookingPaidStatusFilter === "all" ||
+  holiday.paymentStatus === bookingPaidStatusFilter;
+
+  return matchesLeaveType && matchesDateStatus && matchesPaidStatus;
   })
   .map((holiday) => (
               <tr key={holiday.id} className="border-b">
