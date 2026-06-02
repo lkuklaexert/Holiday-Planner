@@ -501,6 +501,20 @@ exceptionType: h.exception_type,
     return employee.holidays.reduce((sum, h) => sum + (isStandardBooking(h) ? 0 : bookingTotalWorkingDays(h, bankHolidayMap)), 0);
   }
 
+  function leaveTypeDays(employee, leaveType, bankHolidayMap) {
+    return employee.holidays.reduce((sum, holiday) => {
+      if (holiday.leaveCategory !== leaveType) return sum;
+  
+      return (
+        sum +
+        bookingTotalWorkingDays(
+          holiday,
+          bankHolidayMap
+        )
+      );
+    }, 0);
+  }
+
   async function addDepartment() {
     const name = newDepartmentName.trim();
     if (!name) return;
@@ -821,7 +835,47 @@ exceptionType: h.exception_type,
                             <button onClick={() => setSelectedEmployeeId(employee.id)} className="w-full text-left">
                               <p className="font-semibold">{employeeFullName(employee)}</p>
                               <p className="text-xs text-slate-600">Staff No: {employee.staff_number || "-"} | Dept: {departmentName(employee.department_id)}</p>
-                              <p className="text-xs text-slate-600">Entitlement: {employee.entitlement} | Standard used: {standardUsed} | Remaining: {remaining}</p>
+                              <p className="text-xs text-slate-600">
+  Entitlement: {employee.entitlement}
+</p>
+
+<p className="text-xs text-slate-600">
+  Annual Leave Used: {standardUsed}
+</p>
+
+<p className="text-xs text-slate-600">
+  Remaining: {remaining}
+</p>
+
+{leaveTypeDays(employee, "sickness_certified", bankHolidayMap) > 0 && (
+  <p className="text-xs text-red-600">
+    Certified Sick: {leaveTypeDays(
+      employee,
+      "sickness_certified",
+      bankHolidayMap
+    )}
+  </p>
+)}
+
+{leaveTypeDays(employee, "sickness_uncertified", bankHolidayMap) > 0 && (
+  <p className="text-xs text-orange-600">
+    Uncertified Sick: {leaveTypeDays(
+      employee,
+      "sickness_uncertified",
+      bankHolidayMap
+    )}
+  </p>
+)}
+
+{leaveTypeDays(employee, "compassionate_leave", bankHolidayMap) > 0 && (
+  <p className="text-xs text-purple-600">
+    Compassionate: {leaveTypeDays(
+      employee,
+      "compassionate_leave",
+      bankHolidayMap
+    )}
+  </p>
+)}
                               <p className="text-xs text-slate-600">Exception days recorded: {exceptions}</p>
                             </button>
                             <div className="mt-3 flex gap-2">
