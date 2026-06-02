@@ -31,19 +31,39 @@ const LEAVE_CATEGORIES = {
   EXCEPTION: "exception",
 };
 
-const EXCEPTION_TYPES = [
-  { value: "sick_leave", label: "Sick Leave" },
-  { value: "compassionate_leave", label: "Compassionate Leave" },
-  { value: "medical_appointment", label: "Medical Appointment" },
-  { value: "training", label: "Training" },
-  { value: "jury_duty", label: "Jury Duty" },
-  { value: "maternity_paternity", label: "Maternity / Paternity" },
-  { value: "force_majeure", label: "Force Majeure" },
-  { value: "other", label: "Other" },
+const LEAVE_TYPES = [
+  { value: "annual_leave", label: "Annual Leave", deductsEntitlement: true },
+
+  { value: "compassionate_leave", label: "Compassionate Leave", deductsEntitlement: false },
+  { value: "force_majeure", label: "Force Majeure", deductsEntitlement: false },
+  { value: "jury_service", label: "Jury Service", deductsEntitlement: false },
+
+  { value: "maternity_leave", label: "Maternity Leave", deductsEntitlement: false },
+  { value: "paternity_leave", label: "Paternity Leave", deductsEntitlement: false },
+  { value: "parental_leave", label: "Parental Leave", deductsEntitlement: false },
+  { value: "adoption_leave", label: "Adoption Leave", deductsEntitlement: false },
+  { value: "parents_leave", label: "Parent's Leave", deductsEntitlement: false },
+
+  { value: "sickness_certified", label: "Sickness Certified", deductsEntitlement: false },
+  { value: "sickness_uncertified", label: "Sickness Uncertified", deductsEntitlement: false },
+  { value: "statutory_sick_leave", label: "Statutory Sick Leave", deductsEntitlement: false },
+
+  { value: "study_leave", label: "Study Leave", deductsEntitlement: false },
+  { value: "bereavement_leave", label: "Bereavement Leave", deductsEntitlement: false },
+
+  { value: "suspension", label: "Suspension", deductsEntitlement: false },
+  { value: "garden_leave", label: "Garden Leave", deductsEntitlement: false },
+  { value: "other_unpaid", label: "Other Unpaid", deductsEntitlement: false },
+
+  { value: "remote_working_abroad", label: "Remote Working (Abroad)", deductsEntitlement: false },
 ];
 
-function exceptionLabel(value) {
-  return EXCEPTION_TYPES.find((t) => t.value === value)?.label || "Exception";
+function leaveTypeLabel(value) {
+  return LEAVE_TYPES.find((t) => t.value === value)?.label || "Leave";
+}
+
+function leaveTypeDeductsEntitlement(value) {
+  return LEAVE_TYPES.find((t) => t.value === value)?.deductsEntitlement || false;
 }
 
 function pad(n) { return String(n).padStart(2, "0"); }
@@ -133,7 +153,7 @@ function countWorkingDays(startISO, endISO, bankHolidayMap) {
 }
 
 function isStandardBooking(booking) {
-  return booking.leaveCategory === LEAVE_CATEGORIES.STANDARD || !booking.leaveCategory;
+  return leaveTypeDeductsEntitlement(booking.leaveCategory);
 }
 
 function bookingDaysForEntitlement(booking, bankHolidayMap) {
@@ -146,7 +166,7 @@ function bookingTotalWorkingDays(booking, bankHolidayMap) {
 }
 
 function bookingTypeLabel(booking) {
-  return isStandardBooking(booking) ? "Standard Holiday Entitlement" : exceptionLabel(booking.exceptionType);
+  return leaveTypeLabel(booking.leaveCategory);
 }
 
 function paymentStatusLabel(booking) {
@@ -186,7 +206,7 @@ const [bookingDateStatusFilter, setBookingDateStatusFilter] = useState("all");
   const [holidayStart, setHolidayStart] = useState(defaultCurrentDate);
   const [holidayEnd, setHolidayEnd] = useState(defaultCurrentDate);
   const [dayAmount, setDayAmount] = useState(1);
-  const [leaveCategory, setLeaveCategory] = useState(LEAVE_CATEGORIES.STANDARD);
+  const [leaveCategory, setLeaveCategory] = useState("annual_leave");
   const [exceptionType, setExceptionType] = useState("sick_leave");
   const [paymentStatus, setPaymentStatus] = useState("paid");
   const [holidayNotes, setHolidayNotes] = useState("");
@@ -383,8 +403,11 @@ const visibleEmployees = useMemo(() => {
             id: h.id,
             start: h.start_date,
             end: h.end_date,
-            leaveCategory: h.leave_category,
-            exceptionType: h.exception_type,
+            leaveCategory:
+  h.leave_category === "standard_entitlement"
+    ? "annual_leave"
+    : h.exception_type || h.leave_category,
+exceptionType: h.exception_type,
             paymentStatus: h.payment_status,
             notes: h.notes,
             dayAmount: Number(h.day_amount || 1),
@@ -555,7 +578,7 @@ const visibleEmployees = useMemo(() => {
     setHolidayStart(current);
     setHolidayEnd(current);
     setDayAmount(1);
-    setLeaveCategory(LEAVE_CATEGORIES.STANDARD);
+    setLeaveCategory("annual_leave");
     setExceptionType("sick_leave");
     setPaymentStatus("paid");
     setHolidayNotes("");
