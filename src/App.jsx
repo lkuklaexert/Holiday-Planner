@@ -683,6 +683,52 @@ exceptionType: h.exception_type,
 
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const currentMonth = new Date().getMonth();
+  const todayISO = toISO(new Date());
+
+const totalEmployees = employees.length;
+
+const currentlyOnLeave = employees.filter((employee) =>
+  employee.holidays.some((holiday) => {
+    return holiday.start <= todayISO && holiday.end >= todayISO;
+  })
+).length;
+
+const currentlyOnSickLeave = employees.filter((employee) =>
+  employee.holidays.some((holiday) => {
+    return (
+      holiday.start <= todayISO &&
+      holiday.end >= todayISO &&
+      (
+        holiday.leaveCategory === "sickness_certified" ||
+        holiday.leaveCategory === "sickness_uncertified" ||
+        holiday.leaveCategory === "statutory_sick_leave"
+      )
+    );
+  })
+).length;
+
+const next30Days = addDays(new Date(), 30);
+const next30DaysISO = toISO(next30Days);
+
+const upcomingBookings30Days = employees.reduce((sum, employee) => {
+  return (
+    sum +
+    employee.holidays.filter((holiday) => {
+      return holiday.start <= next30DaysISO && holiday.end >= todayISO;
+    }).length
+  );
+}, 0);
+
+const annualLeaveDaysBooked = employees.reduce((sum, employee) => {
+  return (
+    sum +
+    employee.holidays.reduce((holidaySum, holiday) => {
+      if (holiday.leaveCategory !== "annual_leave") return holidaySum;
+      return holidaySum + bookingTotalWorkingDays(holiday, bankHolidayMap);
+    }, 0)
+  );
+}, 0);
+
   function scrollCalendarToToday() {
     const el = document.getElementById("calendar-scroll-container");
     if (!el) return;
@@ -1139,7 +1185,45 @@ exceptionType: h.exception_type,
           </div>
 )}
 {activeView === "planner" && (
-          <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
+  <div className="space-y-4">
+    <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-5">
+      <Card>
+        <CardContent className="p-4">
+          <p className="text-xs text-slate-500">Employees</p>
+          <p className="text-2xl font-bold">{totalEmployees}</p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-4">
+          <p className="text-xs text-slate-500">Currently on Leave</p>
+          <p className="text-2xl font-bold">{currentlyOnLeave}</p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-4">
+          <p className="text-xs text-slate-500">Currently Sick</p>
+          <p className="text-2xl font-bold">{currentlyOnSickLeave}</p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-4">
+          <p className="text-xs text-slate-500">Bookings Next 30 Days</p>
+          <p className="text-2xl font-bold">{upcomingBookings30Days}</p>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent className="p-4">
+          <p className="text-xs text-slate-500">Annual Leave Days Booked</p>
+          <p className="text-2xl font-bold">{annualLeaveDaysBooked}</p>
+        </CardContent>
+      </Card>
+    </div>
+
+    <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
           <div className="flex flex-wrap items-center gap-3 border-b p-4 text-sm">
   <label className="font-medium">Department</label>
 
@@ -1273,9 +1357,12 @@ exceptionType: h.exception_type,
                   })}
                 </tbody>
               </table>
-                 </div>
+              </div>
         </div>
+      </div>
 )}
+
+
 {activeView === "planner" && (
         <Card>
           <CardContent className="p-4">
