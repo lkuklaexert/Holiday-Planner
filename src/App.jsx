@@ -168,6 +168,7 @@ const [nameSort, setNameSort] = useState("az");
 const [activeView, setActiveView] = useState("planner");
 const [bookingSearch, setBookingSearch] = useState("");
 const [bookingLeaveTypeFilter, setBookingLeaveTypeFilter] = useState("all");
+const [bookingDateStatusFilter, setBookingDateStatusFilter] = useState("all");
 
   const [year, setYear] = useState(currentYear);
   const [employees, setEmployees] = useState([]);
@@ -847,7 +848,7 @@ const visibleEmployees = useMemo(() => {
             <Card>
   <CardContent className="p-4">
     <h2 className="mb-4 font-semibold">All Bookings</h2>
-    <div className="mb-4 grid gap-2 md:grid-cols-[1fr_240px_240px]">
+    <div className="mb-4 grid gap-2 md:grid-cols-[1fr_220px_220px_220px]">
   <input
     type="text"
     placeholder="Search employee..."
@@ -876,6 +877,16 @@ const visibleEmployees = useMemo(() => {
   <option value="all">All leave types</option>
   <option value={LEAVE_CATEGORIES.STANDARD}>Standard Holiday</option>
   <option value={LEAVE_CATEGORIES.EXCEPTION}>Exception</option>
+</select>
+<select
+  value={bookingDateStatusFilter}
+  onChange={(e) => setBookingDateStatusFilter(e.target.value)}
+  className="w-full rounded-xl border px-3 py-2 text-sm"
+>
+  <option value="all">All dates</option>
+  <option value="current">Currently on leave</option>
+  <option value="future">Future bookings</option>
+  <option value="past">Past bookings</option>
 </select>
 </div>
     <div className="overflow-auto">
@@ -911,8 +922,25 @@ const visibleEmployees = useMemo(() => {
   .flatMap((employee) =>
   employee.holidays
   .filter((holiday) => {
-    if (bookingLeaveTypeFilter === "all") return true;
-    return holiday.leaveCategory === bookingLeaveTypeFilter;
+    const today = new Date();
+    const holidayStart = fromISO(holiday.start);
+    const holidayEnd = fromISO(holiday.end);
+
+    const matchesLeaveType =
+      bookingLeaveTypeFilter === "all" ||
+      holiday.leaveCategory === bookingLeaveTypeFilter;
+
+    const matchesDateStatus =
+      bookingDateStatusFilter === "all" ||
+      (bookingDateStatusFilter === "current" &&
+        holidayStart <= today &&
+        holidayEnd >= today) ||
+      (bookingDateStatusFilter === "future" &&
+        holidayStart > today) ||
+      (bookingDateStatusFilter === "past" &&
+        holidayEnd < today);
+
+    return matchesLeaveType && matchesDateStatus;
   })
   .map((holiday) => (
               <tr key={holiday.id} className="border-b">
