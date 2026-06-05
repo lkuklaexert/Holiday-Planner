@@ -256,7 +256,6 @@ const [holidayStart, setHolidayStart] = useState(defaultCurrentDate);
 const [holidayEnd, setHolidayEnd] = useState(defaultCurrentDate);
 const [dayAmount, setDayAmount] = useState(1);
 const [leaveCategory, setLeaveCategory] = useState("annual_leave");
-const [exceptionType, setExceptionType] = useState("sick_leave");
 const [paymentStatus, setPaymentStatus] = useState("paid");
 const [holidayNotes, setHolidayNotes] = useState("");
 
@@ -643,7 +642,6 @@ exceptionType: h.exception_type,
     setHolidayEnd(current);
     setDayAmount(1);
     setLeaveCategory("annual_leave");
-    setExceptionType("sick_leave");
     setPaymentStatus("paid");
     setHolidayNotes("");
   }
@@ -709,7 +707,7 @@ payment_status: paymentStatus,
   }
 
   function startEditBooking(employee, holiday) {
-    setSelectedEmployee(employee.id);
+    setSelectedEmployeeId(employee.id);
   
     setHolidayStart(holiday.start);
     setHolidayEnd(holiday.end);
@@ -1086,7 +1084,7 @@ const annualLeaveDaysBooked = employees.reduce((sum, employee) => {
 
 {editingBooking && (
   <Button
-    variant="secondary"
+    variant="outline"
     className="w-full mt-2"
     onClick={() => {
       setEditingBooking(null);
