@@ -1005,7 +1005,17 @@ const annualLeaveDaysBooked = employees.reduce((sum, employee) => {
 </select>
                 </div>
 
-                
+                <div>
+  <label className="text-xs text-slate-600">Paid status</label>
+  <select
+    value={paymentStatus}
+    onChange={(e) => setPaymentStatus(e.target.value)}
+    className="w-full rounded-xl border px-3 py-2 text-sm"
+  >
+    <option value="paid">Paid</option>
+    <option value="unpaid">Unpaid</option>
+  </select>
+</div>
 
                 <textarea value={holidayNotes} onChange={(e) => setHolidayNotes(e.target.value)} className="min-h-[70px] w-full rounded-xl border px-3 py-2 text-sm" placeholder="Optional note" />
                 <Button onClick={addHoliday} className="w-full" disabled={!selectedEmployee}>Add booking</Button>
@@ -1042,8 +1052,12 @@ const annualLeaveDaysBooked = employees.reduce((sum, employee) => {
   className="w-full rounded-xl border px-3 py-2 text-sm"
 >
   <option value="all">All leave types</option>
-  <option value={LEAVE_CATEGORIES.STANDARD}>Standard Holiday</option>
-  <option value={LEAVE_CATEGORIES.EXCEPTION}>Exception</option>
+
+  {LEAVE_TYPES.map((type) => (
+    <option key={type.value} value={type.value}>
+      {type.label}
+    </option>
+  ))}
 </select>
 <select
   value={bookingDateStatusFilter}
