@@ -221,50 +221,52 @@ function leaveTypeColorClass(booking) {
 }
 
 export default function IrishHolidayPlanner() {
-  const currentYear = new Date().getFullYear();
-  const defaultCurrentDate = toISO(new Date());
+const currentYear = new Date().getFullYear();
+const defaultCurrentDate = toISO(new Date());
 
-  const [session, setSession] = useState(null);
-  const [loginEmail, setLoginEmail] = useState("");
-  const [loginPassword, setLoginPassword] = useState("");
-  const [loginError, setLoginError] = useState("");
-  const [employeeError, setEmployeeError] = useState("");
-  const [departmentFilter, setDepartmentFilter] = useState("all");
-  const [holidayWindowFilter, setHolidayWindowFilter] = useState(false);
+const [session, setSession] = useState(null);
+const [loginEmail, setLoginEmail] = useState("");
+const [loginPassword, setLoginPassword] = useState("");
+const [loginError, setLoginError] = useState("");
+const [employeeError, setEmployeeError] = useState("");
+const [departmentFilter, setDepartmentFilter] = useState("all");
+const [holidayWindowFilter, setHolidayWindowFilter] = useState(false);
 const [nameSort, setNameSort] = useState("az");
 const [activeView, setActiveView] = useState("planner");
 const [bookingSearch, setBookingSearch] = useState("");
 const [bookingLeaveTypeFilter, setBookingLeaveTypeFilter] = useState("all");
 const [bookingDateStatusFilter, setBookingDateStatusFilter] = useState("all");
 const [bookingPaidStatusFilter, setBookingPaidStatusFilter] = useState("all");
+const [editingBooking, setEditingBooking] = useState(null);
 
-  const [year, setYear] = useState(currentYear);
-  const [employees, setEmployees] = useState([]);
-  const [departments, setDepartments] = useState([]);
-  const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
+const [year, setYear] = useState(currentYear);
+const [employees, setEmployees] = useState([]);
+const [departments, setDepartments] = useState([]);
+const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
 
-  const [newFirstName, setNewFirstName] = useState("");
-  const [newLastName, setNewLastName] = useState("");
-  const [newStaffNumber, setNewStaffNumber] = useState("");
-  const [newDepartmentId, setNewDepartmentId] = useState("");
-  const [newEntitlement, setNewEntitlement] = useState(25);
+const [newFirstName, setNewFirstName] = useState("");
+const [newLastName, setNewLastName] = useState("");
+const [newStaffNumber, setNewStaffNumber] = useState("");
+const [newDepartmentId, setNewDepartmentId] = useState("");
+const [newEntitlement, setNewEntitlement] = useState(25);
 
-  const [newDepartmentName, setNewDepartmentName] = useState("");
+const [newDepartmentName, setNewDepartmentName] = useState("");
 
-  const [holidayStart, setHolidayStart] = useState(defaultCurrentDate);
-  const [holidayEnd, setHolidayEnd] = useState(defaultCurrentDate);
-  const [dayAmount, setDayAmount] = useState(1);
-  const [leaveCategory, setLeaveCategory] = useState("annual_leave");
-  const [exceptionType, setExceptionType] = useState("sick_leave");
-  const [paymentStatus, setPaymentStatus] = useState("paid");
-  const [holidayNotes, setHolidayNotes] = useState("");
+const [holidayStart, setHolidayStart] = useState(defaultCurrentDate);
+const [holidayEnd, setHolidayEnd] = useState(defaultCurrentDate);
+const [dayAmount, setDayAmount] = useState(1);
+const [leaveCategory, setLeaveCategory] = useState("annual_leave");
+const [exceptionType, setExceptionType] = useState("sick_leave");
+const [paymentStatus, setPaymentStatus] = useState("paid");
+const [holidayNotes, setHolidayNotes] = useState("");
 
-  const [editingId, setEditingId] = useState(null);
-  const [editFirstName, setEditFirstName] = useState("");
-  const [editLastName, setEditLastName] = useState("");
-  const [editStaffNumber, setEditStaffNumber] = useState("");
-  const [editDepartmentId, setEditDepartmentId] = useState("");
-  const [editEntitlement, setEditEntitlement] = useState(25);
+const [editingId, setEditingId] = useState(null);
+const [editFirstName, setEditFirstName] = useState("");
+const [editLastName, setEditLastName] = useState("");
+const [editStaffNumber, setEditStaffNumber] = useState("");
+const [editDepartmentId, setEditDepartmentId] = useState("");
+const [editEntitlement, setEditEntitlement] = useState(25);
+  
 
   const bankHolidayMap = useMemo(() => getIrishBankHolidays(Number(year)), [year]);
   const yearDays = useMemo(() => getDaysInYear(Number(year)), [year]);
@@ -670,6 +672,31 @@ payment_status: paymentStatus,
     await loadEmployees();
   }
 
+  async function updateHoliday() {
+    if (!editingBooking) return;
+  
+    const { error } = await supabase
+      .from("holiday_bookings")
+      .update({
+        start_date: holidayStart,
+        end_date: holidayEnd,
+        leave_category: leaveCategory,
+        payment_status: paymentStatus,
+        notes: holidayNotes,
+        day_amount: dayAmount,
+      })
+      .eq("id", editingBooking.bookingId);
+  
+    if (error) {
+      alert(error.message);
+      return;
+    }
+  
+    setEditingBooking(null);
+  
+    await loadEmployees();
+  }
+
   async function deleteHoliday(employeeId, holidayId) {
     const { error } = await supabase.from("holiday_bookings").delete().eq("id", holidayId);
 
@@ -679,6 +706,37 @@ payment_status: paymentStatus,
     }
 
     await loadEmployees();
+  }
+
+  function startEditBooking(employee, holiday) {
+    setSelectedEmployee(employee.id);
+  
+    setHolidayStart(holiday.start);
+    setHolidayEnd(holiday.end);
+  
+    setLeaveCategory(holiday.leaveCategory);
+  
+    setPaymentStatus(
+      holiday.paymentStatus || "paid"
+    );
+  
+    setHolidayNotes(
+      holiday.notes || ""
+    );
+  
+    setDayAmount(
+      holiday.dayAmount || 1
+    );
+  
+    setEditingBooking({
+      employeeId: employee.id,
+      bookingId: holiday.id,
+    });
+  
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
   }
 
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -1018,7 +1076,25 @@ const annualLeaveDaysBooked = employees.reduce((sum, employee) => {
 </div>
 
                 <textarea value={holidayNotes} onChange={(e) => setHolidayNotes(e.target.value)} className="min-h-[70px] w-full rounded-xl border px-3 py-2 text-sm" placeholder="Optional note" />
-                <Button onClick={addHoliday} className="w-full" disabled={!selectedEmployee}>Add booking</Button>
+                <Button
+  onClick={editingBooking ? updateHoliday : addHoliday}
+  className="w-full"
+  disabled={!selectedEmployee}
+>
+  {editingBooking ? "Update booking" : "Add booking"}
+</Button>
+
+{editingBooking && (
+  <Button
+    variant="secondary"
+    className="w-full mt-2"
+    onClick={() => {
+      setEditingBooking(null);
+    }}
+  >
+    Cancel edit
+  </Button>
+)}
               </CardContent>
             </Card>
 
@@ -1174,15 +1250,24 @@ const annualLeaveDaysBooked = employees.reduce((sum, employee) => {
                 </td>
 
                 <td className="p-2 text-center">
-                  <Button
-                    size="sm"
-                    variant="danger"
-                    onClick={() =>
-                      deleteHoliday(employee.id, holiday.id)
-                    }
-                  >
-                    Delete
-                  </Button>
+                <div className="flex justify-center gap-2">
+  <Button
+    size="sm"
+    onClick={() => startEditBooking(employee, holiday)}
+  >
+    Edit
+  </Button>
+
+  <Button
+    size="sm"
+    variant="danger"
+    onClick={() =>
+      deleteHoliday(employee.id, holiday.id)
+    }
+  >
+    Delete
+  </Button>
+</div>
                 </td>
               </tr>
             ))
