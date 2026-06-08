@@ -230,6 +230,7 @@ export default function IrishHolidayPlanner() {
   const [loginPassword, setLoginPassword] = useState("");
   const [loginError, setLoginError] = useState("");
   const [employeeError, setEmployeeError] = useState("");
+  const [employeeSearch, setEmployeeSearch] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [holidayWindowFilter, setHolidayWindowFilter] = useState(false);
   const [nameSort, setNameSort] = useState("az");
@@ -296,6 +297,13 @@ export default function IrishHolidayPlanner() {
 
   // Inactive employees are hidden from normal planning but visible to admins/managers
   const inactiveEmployees = employees.filter((employee) => employee.active === false);
+
+  // Employee search is limited to active employees in the main employee list
+  const filteredActiveEmployees = activeEmployees.filter((employee) => {
+    const searchText = `${employeeFullName(employee)} ${employee.staff_number || ""} ${departmentName(employee.department_id)}`.toLowerCase();
+
+    return searchText.includes(employeeSearch.toLowerCase());
+  });
 
 
   const visibleEmployees = useMemo(() => {
@@ -900,7 +908,7 @@ export default function IrishHolidayPlanner() {
 
     el.scrollLeft = Math.max(
       0,
-      (dayIndex * approxColumnWidth) + 368
+      (dayIndex * approxColumnWidth) + 370
     );
   }
 
@@ -1011,6 +1019,13 @@ export default function IrishHolidayPlanner() {
                 )}
 
                 <Button onClick={addEmployee} className="w-full"><Icon label="plus" /> Add employee</Button>
+                <input
+                  type="text"
+                  placeholder="Search employees by name, staff number or department..."
+                  value={employeeSearch}
+                  onChange={(e) => setEmployeeSearch(e.target.value)}
+                  className="w-full rounded-xl border px-3 py-2 text-sm"
+                />
 
                 <div className="overflow-auto rounded-xl border">
                   <table className="min-w-full border-collapse text-sm">
@@ -1028,7 +1043,7 @@ export default function IrishHolidayPlanner() {
                     </thead>
 
                     <tbody>
-                      {activeEmployees.map((employee) => {
+                      {filteredActiveEmployees.map((employee) => {
                         const standardUsed = usedDays(employee);
                         const exceptions = exceptionDays(employee);
                         const remaining = employee.entitlement - standardUsed;
