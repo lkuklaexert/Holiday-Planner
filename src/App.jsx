@@ -291,9 +291,15 @@ useEffect(() => {
   }
 }, [activeView, canManagePeople, canManageDepartments, canManageBookings]);
 
+// Active employees are used in planner, bookings and dashboard calculations
+const activeEmployees = employees.filter((employee) => employee.active !== false);
+
+// Inactive employees are hidden from normal planning but visible to admins/managers
+const inactiveEmployees = employees.filter((employee) => employee.active === false);
+
 
 const visibleEmployees = useMemo(() => {
-  return employees
+  return activeEmployees
   .filter((employee) => {
     // Department filter
     if (
@@ -332,7 +338,7 @@ const visibleEmployees = useMemo(() => {
 
       return nameA.localeCompare(nameB);
     });
-  }, [employees, departmentFilter, nameSort, holidayWindowFilter, departments]);
+  }, [activeEmployees, departmentFilter, nameSort, holidayWindowFilter, departments]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setSession(session));
@@ -464,17 +470,17 @@ const visibleEmployees = useMemo(() => {
   }
 
   async function loadEmployees() {
+    // Load all employees so active and inactive lists can be shown separately
     const { data, error } = await supabase
-    .from("employees")
-    .select("*")
-    .eq("active", true)
-    .order("last_name", { ascending: true });
-
+      .from("employees")
+      .select("*")
+      .order("last_name", { ascending: true });
+  
     if (error) {
       console.error("Employees load error:", error);
       return;
     }
-
+  
     const employeesWithHolidays = await Promise.all(
       (data || []).map(async (employee) => {
         const { data: holidays, error: holidayError } = await supabase
@@ -482,20 +488,21 @@ const visibleEmployees = useMemo(() => {
           .select("*")
           .eq("employee_id", employee.id)
           .order("start_date", { ascending: true });
-
+  
         if (holidayError) console.error("Holiday load error:", holidayError);
-
+  
         return {
           ...employee,
+          active: employee.active !== false,
           holidays: (holidays || []).map((h) => ({
             id: h.id,
             start: h.start_date,
             end: h.end_date,
             leaveCategory:
-  h.leave_category === "standard_entitlement"
-    ? "annual_leave"
-    : h.exception_type || h.leave_category,
-exceptionType: h.exception_type,
+              h.leave_category === "standard_entitlement"
+                ? "annual_leave"
+                : h.exception_type || h.leave_category,
+            exceptionType: h.exception_type,
             paymentStatus: h.payment_status,
             notes: h.notes,
             dayAmount: Number(h.day_amount || 1),
@@ -503,14 +510,19 @@ exceptionType: h.exception_type,
         };
       })
     );
-
+  
     setEmployees(employeesWithHolidays);
-
-    if (employeesWithHolidays.length > 0) {
-      setSelectedEmployeeId((current) => current || employeesWithHolidays[0].id);
+  
+    const activeEmployees = employeesWithHolidays.filter(
+      (employee) => employee.active !== false
+    );
+  
+    if (activeEmployees.length > 0) {
+      setSelectedEmployeeId((current) => current || activeEmployees[0].id);
     }
   }
 
+    
   const holidayDayMap = useMemo(() => {
     const map = new Map();
 
@@ -813,7 +825,8 @@ payment_status: paymentStatus,
   const currentMonth = new Date().getMonth();
   const todayISO = toISO(new Date());
 
-const totalEmployees = employees.length;
+
+const totalEmployees = activeEmployees.length;
 
 const currentlyOnLeave = employees.filter((employee) =>
   employee.holidays.some((holiday) => {
@@ -983,111 +996,106 @@ const annualLeaveDaysBooked = employees.reduce((sum, employee) => {
                 <Button onClick={addEmployee} className="w-full"><Icon label="plus" /> Add employee</Button>
 
                 <div className="space-y-2">
-                  {employees.map((employee) => {
-                    const standardUsed = usedDays(employee);
-                    const exceptions = exceptionDays(employee);
-                    const remaining = employee.entitlement - standardUsed;
-                    const isSelected = selectedEmployeeId === employee.id;
+  {activeEmployees.map((employee) => {
+    const standardUsed = usedDays(employee);
+    const exceptions = exceptionDays(employee);
+    const remaining = employee.entitlement - standardUsed;
+    const isSelected = selectedEmployeeId === employee.id;
 
-                    return (
-                      <div key={employee.id} className={`rounded-2xl border p-3 ${isSelected ? "border-slate-900 bg-slate-100" : "bg-white"}`}>
-                        {editingId === employee.id ? (
-                          <div className="space-y-2">
-                            <div className="grid grid-cols-2 gap-2">
-                              <input value={editFirstName} onChange={(e) => setEditFirstName(e.target.value)} className="rounded-xl border px-3 py-2 text-sm" />
-                              <input value={editLastName} onChange={(e) => setEditLastName(e.target.value)} className="rounded-xl border px-3 py-2 text-sm" />
-                              <input value={editStaffNumber} onChange={(e) => setEditStaffNumber(e.target.value.replace(/\D/g, "").slice(0, 10))} className="rounded-xl border px-3 py-2 text-sm" />
-                              <input type="number" value={editEntitlement} onChange={(e) => setEditEntitlement(e.target.value)} className="rounded-xl border px-3 py-2 text-sm" />
-                            </div>
+    return (
+      <div
+        key={employee.id}
+        className={`rounded-xl border p-3 text-sm ${
+          isSelected ? "border-slate-900 bg-slate-100" : "bg-white"
+        }`}
+      >
+        {editingId === employee.id ? (
+          <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-2">
+              <input value={editFirstName} onChange={(e) => setEditFirstName(e.target.value)} className="rounded-xl border px-3 py-2 text-sm" />
+              <input value={editLastName} onChange={(e) => setEditLastName(e.target.value)} className="rounded-xl border px-3 py-2 text-sm" />
+              <input value={editStaffNumber} onChange={(e) => setEditStaffNumber(e.target.value.replace(/\D/g, "").slice(0, 10))} className="rounded-xl border px-3 py-2 text-sm" />
+              <input type="number" value={editEntitlement} onChange={(e) => setEditEntitlement(e.target.value)} className="rounded-xl border px-3 py-2 text-sm" />
+            </div>
 
-                            <select value={editDepartmentId} onChange={(e) => setEditDepartmentId(e.target.value)} className="w-full rounded-xl border px-3 py-2 text-sm">
-                              <option value="">No department</option>
-                              {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
-                            </select>
+            <select value={editDepartmentId} onChange={(e) => setEditDepartmentId(e.target.value)} className="w-full rounded-xl border px-3 py-2 text-sm">
+              <option value="">No department</option>
+              {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+            </select>
 
-                            <div className="flex gap-2">
-                              <Button size="sm" onClick={() => saveEdit(employee.id)}><Icon label="save" />Save</Button>
-                              <Button size="sm" variant="outline" onClick={() => setEditingId(null)}><Icon label="close" />Cancel</Button>
-                            </div>
-                          </div>
-                        ) : (
-                          <>
-                            <button onClick={() => setSelectedEmployeeId(employee.id)} className="w-full text-left">
-                              <p className="font-semibold">{employeeFullName(employee)}</p>
-                              <p className="text-xs text-slate-600">Staff No: {employee.staff_number || "-"} | Dept: {departmentName(employee.department_id)}</p>
-                              <p className="text-xs text-slate-600">
-  Entitlement: {employee.entitlement}
-</p>
+            <div className="flex gap-2">
+              <Button size="sm" onClick={() => saveEdit(employee.id)}><Icon label="save" />Save</Button>
+              <Button size="sm" variant="outline" onClick={() => setEditingId(null)}><Icon label="close" />Cancel</Button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <button onClick={() => setSelectedEmployeeId(employee.id)} className="text-left">
+              <p className="font-semibold">{employeeFullName(employee)}</p>
+              <p className="text-xs text-slate-600">
+                Staff No: {employee.staff_number || "-"} | Dept: {departmentName(employee.department_id)}
+              </p>
+            </button>
 
-<p className="text-xs text-slate-600">
-  Annual Leave Used: {standardUsed}
-</p>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-600 md:grid-cols-5">
+              <span>Ent: {employee.entitlement}</span>
+              <span>Used: {standardUsed}</span>
+              <span className={remaining < 0 ? "text-red-600 font-semibold" : ""}>Remain: {remaining}</span>
+              <span>Exceptions: {exceptions}</span>
+              <span>Sick: {
+                leaveTypeDays(employee, "sickness_certified", bankHolidayMap) +
+                leaveTypeDays(employee, "sickness_uncertified", bankHolidayMap) +
+                leaveTypeDays(employee, "statutory_sick_leave", bankHolidayMap)
+              }</span>
+            </div>
 
-<p className="text-xs text-slate-600">
-  Remaining: {remaining}
-</p>
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" onClick={() => startEdit(employee)}>
+                <Icon label="pencil" />Edit
+              </Button>
 
-{leaveTypeDays(employee, "sickness_certified", bankHolidayMap) > 0 && (
-  <p className="text-xs text-red-600">
-    Certified Sick: {leaveTypeDays(
-      employee,
-      "sickness_certified",
-      bankHolidayMap
-    )}
-  </p>
-)}
-
-{leaveTypeDays(employee, "sickness_uncertified", bankHolidayMap) > 0 && (
-  <p className="text-xs text-orange-600">
-    Uncertified Sick: {leaveTypeDays(
-      employee,
-      "sickness_uncertified",
-      bankHolidayMap
-    )}
-  </p>
-)}
-
-{leaveTypeDays(employee, "compassionate_leave", bankHolidayMap) > 0 && (
-  <p className="text-xs text-purple-600">
-    Compassionate: {leaveTypeDays(
-      employee,
-      "compassionate_leave",
-      bankHolidayMap
-    )}
-  </p>
-)}
-                              <p className="text-xs text-slate-600">Exception days recorded: {exceptions}</p>
-                            </button>
-                            <div className="mt-3 flex gap-2">
-                              <Button size="sm" variant="outline" onClick={() => startEdit(employee)}><Icon label="pencil" />Edit</Button>
-                              {isAdmin ? (
-  <Button
-    size="sm"
-    variant="danger"
-    onClick={() => deleteEmployee(employee.id)}
-  >
-    <Icon label="trash" />Delete
-  </Button>
-) : (
-  <Button
-    size="sm"
-    variant="danger"
-    onClick={() => deactivateEmployee(employee.id)}
-  >
-    Deactivate
-  </Button>
-)}
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
+              {isAdmin ? (
+                <Button size="sm" variant="danger" onClick={() => deleteEmployee(employee.id)}>
+                  <Icon label="trash" />Delete
+                </Button>
+              ) : (
+                <Button size="sm" variant="danger" onClick={() => deactivateEmployee(employee.id)}>
+                  Deactivate
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  })}
 </div>
+
+{canManagePeople && inactiveEmployees.length > 0 && (
+  <div className="mt-6 space-y-2">
+    <h3 className="font-semibold text-slate-700">Inactive Employees</h3>
+
+    {inactiveEmployees.map((employee) => (
+      <div key={employee.id} className="flex items-center justify-between rounded-xl border bg-slate-50 p-3 text-sm">
+        <div>
+          <p className="font-semibold text-slate-700">{employeeFullName(employee)}</p>
+          <p className="text-xs text-slate-500">
+            Staff No: {employee.staff_number || "-"} | Dept: {departmentName(employee.department_id)}
+          </p>
+        </div>
+
+        <span className="rounded-full bg-slate-200 px-3 py-1 text-xs text-slate-700">
+          Inactive
+        </span>
+      </div>
+    ))}
+  </div>
 )}
+
+</CardContent>
+            </Card>
+          </div>
+        )}
 
 {activeView === "departments" && (
 <div className="space-y-4">
