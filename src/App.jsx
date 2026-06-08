@@ -995,80 +995,77 @@ const annualLeaveDaysBooked = employees.reduce((sum, employee) => {
 
                 <Button onClick={addEmployee} className="w-full"><Icon label="plus" /> Add employee</Button>
 
-                <div className="space-y-2">
-  {activeEmployees.map((employee) => {
-    const standardUsed = usedDays(employee);
-    const exceptions = exceptionDays(employee);
-    const remaining = employee.entitlement - standardUsed;
-    const isSelected = selectedEmployeeId === employee.id;
+                <div className="overflow-auto rounded-xl border">
+  <table className="min-w-full border-collapse text-sm">
+    <thead>
+      <tr className="border-b bg-slate-100">
+        <th className="p-2 text-left">Employee</th>
+        <th className="p-2 text-left">Department</th>
+        <th className="p-2 text-center">Ent.</th>
+        <th className="p-2 text-center">Used</th>
+        <th className="p-2 text-center">Remain</th>
+        <th className="p-2 text-center">Exceptions</th>
+        <th className="p-2 text-center">Sick</th>
+        <th className="p-2 text-center">Actions</th>
+      </tr>
+    </thead>
 
-    return (
-      <div
-        key={employee.id}
-        className={`rounded-xl border p-3 text-sm ${
-          isSelected ? "border-slate-900 bg-slate-100" : "bg-white"
-        }`}
-      >
-        {editingId === employee.id ? (
-          <div className="space-y-2">
-            <div className="grid grid-cols-2 gap-2">
-              <input value={editFirstName} onChange={(e) => setEditFirstName(e.target.value)} className="rounded-xl border px-3 py-2 text-sm" />
-              <input value={editLastName} onChange={(e) => setEditLastName(e.target.value)} className="rounded-xl border px-3 py-2 text-sm" />
-              <input value={editStaffNumber} onChange={(e) => setEditStaffNumber(e.target.value.replace(/\D/g, "").slice(0, 10))} className="rounded-xl border px-3 py-2 text-sm" />
-              <input type="number" value={editEntitlement} onChange={(e) => setEditEntitlement(e.target.value)} className="rounded-xl border px-3 py-2 text-sm" />
-            </div>
+    <tbody>
+      {activeEmployees.map((employee) => {
+        const standardUsed = usedDays(employee);
+        const exceptions = exceptionDays(employee);
+        const remaining = employee.entitlement - standardUsed;
+        const isSelected = selectedEmployeeId === employee.id;
+        const sickDays =
+          leaveTypeDays(employee, "sickness_certified", bankHolidayMap) +
+          leaveTypeDays(employee, "sickness_uncertified", bankHolidayMap) +
+          leaveTypeDays(employee, "statutory_sick_leave", bankHolidayMap);
 
-            <select value={editDepartmentId} onChange={(e) => setEditDepartmentId(e.target.value)} className="w-full rounded-xl border px-3 py-2 text-sm">
-              <option value="">No department</option>
-              {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
-            </select>
+        return (
+          <tr
+            key={employee.id}
+            className={`border-b ${isSelected ? "bg-slate-100" : "bg-white"}`}
+          >
+            <td className="p-2">
+              <button onClick={() => setSelectedEmployeeId(employee.id)} className="text-left">
+                <p className="font-semibold">{employeeFullName(employee)}</p>
+                <p className="text-xs text-slate-500">
+                  Staff No: {employee.staff_number || "-"}
+                </p>
+              </button>
+            </td>
 
-            <div className="flex gap-2">
-              <Button size="sm" onClick={() => saveEdit(employee.id)}><Icon label="save" />Save</Button>
-              <Button size="sm" variant="outline" onClick={() => setEditingId(null)}><Icon label="close" />Cancel</Button>
-            </div>
-          </div>
-        ) : (
-          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-            <button onClick={() => setSelectedEmployeeId(employee.id)} className="text-left">
-              <p className="font-semibold">{employeeFullName(employee)}</p>
-              <p className="text-xs text-slate-600">
-                Staff No: {employee.staff_number || "-"} | Dept: {departmentName(employee.department_id)}
-              </p>
-            </button>
+            <td className="p-2">{departmentName(employee.department_id)}</td>
+            <td className="p-2 text-center">{employee.entitlement}</td>
+            <td className="p-2 text-center">{standardUsed}</td>
+            <td className={`p-2 text-center font-semibold ${remaining < 0 ? "text-red-600" : ""}`}>
+              {remaining}
+            </td>
+            <td className="p-2 text-center">{exceptions}</td>
+            <td className="p-2 text-center">{sickDays}</td>
 
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-600 md:grid-cols-5">
-              <span>Ent: {employee.entitlement}</span>
-              <span>Used: {standardUsed}</span>
-              <span className={remaining < 0 ? "text-red-600 font-semibold" : ""}>Remain: {remaining}</span>
-              <span>Exceptions: {exceptions}</span>
-              <span>Sick: {
-                leaveTypeDays(employee, "sickness_certified", bankHolidayMap) +
-                leaveTypeDays(employee, "sickness_uncertified", bankHolidayMap) +
-                leaveTypeDays(employee, "statutory_sick_leave", bankHolidayMap)
-              }</span>
-            </div>
-
-            <div className="flex gap-2">
-              <Button size="sm" variant="outline" onClick={() => startEdit(employee)}>
-                <Icon label="pencil" />Edit
-              </Button>
-
-              {isAdmin ? (
-                <Button size="sm" variant="danger" onClick={() => deleteEmployee(employee.id)}>
-                  <Icon label="trash" />Delete
+            <td className="p-2 text-center">
+              <div className="flex justify-center gap-2">
+                <Button size="sm" variant="outline" onClick={() => startEdit(employee)}>
+                  <Icon label="pencil" /> Edit
                 </Button>
-              ) : (
-                <Button size="sm" variant="danger" onClick={() => deactivateEmployee(employee.id)}>
-                  Deactivate
-                </Button>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  })}
+
+                {isAdmin ? (
+                  <Button size="sm" variant="danger" onClick={() => deleteEmployee(employee.id)}>
+                    <Icon label="trash" /> Delete
+                  </Button>
+                ) : (
+                  <Button size="sm" variant="danger" onClick={() => deactivateEmployee(employee.id)}>
+                    Deactivate
+                  </Button>
+                )}
+              </div>
+            </td>
+          </tr>
+        );
+      })}
+    </tbody>
+  </table>
 </div>
 
 {canManagePeople && inactiveEmployees.length > 0 && (
