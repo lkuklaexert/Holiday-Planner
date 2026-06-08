@@ -659,6 +659,23 @@ const visibleEmployees = useMemo(() => {
     await loadEmployees();
   }
 
+  async function reactivateEmployee(id) {
+    // Admins and managers can restore inactive employees when they return
+    if (!canManagePeople) return;
+  
+    const { error } = await supabase
+      .from("employees")
+      .update({ active: true })
+      .eq("id", id);
+  
+    if (error) {
+      alert(error.message);
+      return;
+    }
+  
+    await loadEmployees();
+  }
+
   async function deleteEmployee(id) {
         // Permanent deletion is restricted to admins
         if (!isAdmin) return;
@@ -1081,9 +1098,19 @@ const annualLeaveDaysBooked = employees.reduce((sum, employee) => {
           </p>
         </div>
 
-        <span className="rounded-full bg-slate-200 px-3 py-1 text-xs text-slate-700">
-          Inactive
-        </span>
+        <div className="flex items-center gap-2">
+  <span className="rounded-full bg-slate-200 px-3 py-1 text-xs text-slate-700">
+    Inactive
+  </span>
+
+  <Button
+    size="sm"
+    variant="outline"
+    onClick={() => reactivateEmployee(employee.id)}
+  >
+    Reactivate
+  </Button>
+</div>
       </div>
     ))}
   </div>
