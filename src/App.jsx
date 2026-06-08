@@ -272,9 +272,30 @@ const [editEntitlement, setEditEntitlement] = useState(25);
   const yearDays = useMemo(() => getDaysInYear(Number(year)), [year]);
   const selectedEmployee = employees.find((e) => e.id === selectedEmployeeId) || employees[0];
   const isAdmin = userRole === "admin";
-  if (!isAdmin && activeView !== "planner") {
-    setActiveView("planner");
-  }
+const isManager = userRole === "manager";
+const canManagePeople = isAdmin || isManager;
+const canManageBookings = isAdmin || isManager;
+const canManageDepartments = isAdmin;
+if (
+  activeView === "employees" &&
+  !canManagePeople
+) {
+  setActiveView("planner");
+}
+
+if (
+  activeView === "departments" &&
+  !canManageDepartments
+) {
+  setActiveView("planner");
+}
+
+if (
+  activeView === "bookings" &&
+  !canManageBookings
+) {
+  setActiveView("planner");
+}
 
 
 const visibleEmployees = useMemo(() => {
@@ -859,29 +880,31 @@ const annualLeaveDaysBooked = employees.reduce((sum, employee) => {
     Planner
   </Button>
 
-  {isAdmin && (
-  <>
-    <Button
-      variant={activeView === "employees" ? "primary" : "outline"}
-      onClick={() => setActiveView("employees")}
-    >
-      Employees
-    </Button>
+  {canManagePeople && (
+  <Button
+    variant={activeView === "employees" ? "primary" : "outline"}
+    onClick={() => setActiveView("employees")}
+  >
+    Employees
+  </Button>
+)}
 
-    <Button
-      variant={activeView === "departments" ? "primary" : "outline"}
-      onClick={() => setActiveView("departments")}
-    >
-      Departments
-    </Button>
+{canManageDepartments && (
+  <Button
+    variant={activeView === "departments" ? "primary" : "outline"}
+    onClick={() => setActiveView("departments")}
+  >
+    Departments
+  </Button>
+)}
 
-    <Button
-      variant={activeView === "bookings" ? "primary" : "outline"}
-      onClick={() => setActiveView("bookings")}
-    >
-      Bookings
-    </Button>
-  </>
+{canManageBookings && (
+  <Button
+    variant={activeView === "bookings" ? "primary" : "outline"}
+    onClick={() => setActiveView("bookings")}
+  >
+    Bookings
+  </Button>
 )}
 </div>
         <div className="flex flex-col gap-3 rounded-2xl bg-white p-5 shadow-sm md:flex-row md:items-center md:justify-between">
