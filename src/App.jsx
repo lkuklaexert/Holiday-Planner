@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { supabase } from "./supabase";
+import * as XLSX from "xlsx";
 
 function Button({ children, onClick, type = "button", variant = "primary", size = "md", className = "", disabled = false }) {
   const base = "inline-flex items-center justify-center gap-1 rounded-xl font-medium transition disabled:cursor-not-allowed disabled:opacity-50";
@@ -814,6 +815,29 @@ export default function IrishHolidayPlanner() {
 
     await loadEmployees();
   }
+  function exportBookingsToExcel() {
+    // Export current booking data for offline reporting and manager review
+    const rows = employees.flatMap((employee) =>
+      employee.holidays.map((holiday) => ({
+        Employee: employeeFullName(employee),
+        "Staff Number": employee.staff_number || "",
+        Department: departmentName(employee.department_id),
+        "Leave Type": bookingTypeLabel(holiday),
+        Start: holiday.start,
+        End: holiday.end,
+        Days: bookingTotalWorkingDays(holiday, bankHolidayMap),
+        Paid: paymentStatusLabel(holiday),
+        Notes: holiday.notes || "",
+      }))
+    );
+
+    const worksheet = XLSX.utils.json_to_sheet(rows);
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Bookings");
+    XLSX.writeFile(workbook, `holiday-bookings-${year}.xlsx`);
+  }
+
 
   function startEditBooking(employee, holiday) {
     setSelectedEmployeeId(employee.id);
@@ -1315,7 +1339,13 @@ export default function IrishHolidayPlanner() {
 
             <Card>
               <CardContent className="p-4">
-                <h2 className="mb-4 font-semibold">All Bookings</h2>
+                <div className="mb-4 flex items-center justify-between gap-2">
+                  <h2 className="font-semibold">All Bookings</h2>
+
+                  <Button variant="outline" onClick={exportBookingsToExcel}>
+                    Export to Excel
+                  </Button>
+                </div>
                 <div className="mb-4 grid gap-2 md:grid-cols-[1fr_200px_200px_200px_200px]">
                   <input
                     type="text"
