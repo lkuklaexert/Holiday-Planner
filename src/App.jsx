@@ -1038,48 +1038,110 @@ const annualLeaveDaysBooked = employees.reduce((sum, employee) => {
           leaveTypeDays(employee, "sickness_uncertified", bankHolidayMap) +
           leaveTypeDays(employee, "statutory_sick_leave", bankHolidayMap);
 
-        return (
-          <tr
-            key={employee.id}
-            className={`border-b ${isSelected ? "bg-slate-100" : "bg-white"}`}
-          >
-            <td className="p-2">
-              <button onClick={() => setSelectedEmployeeId(employee.id)} className="text-left">
-                <p className="font-semibold">{employeeFullName(employee)}</p>
-                <p className="text-xs text-slate-500">
-                  Staff No: {employee.staff_number || "-"}
-                </p>
-              </button>
-            </td>
-
-            <td className="p-2">{departmentName(employee.department_id)}</td>
-            <td className="p-2 text-center">{employee.entitlement}</td>
-            <td className="p-2 text-center">{standardUsed}</td>
-            <td className={`p-2 text-center font-semibold ${remaining < 0 ? "text-red-600" : ""}`}>
-              {remaining}
-            </td>
-            <td className="p-2 text-center">{exceptions}</td>
-            <td className="p-2 text-center">{sickDays}</td>
-
-            <td className="p-2 text-center">
-              <div className="flex justify-center gap-2">
-                <Button size="sm" variant="outline" onClick={() => startEdit(employee)}>
-                  <Icon label="pencil" /> Edit
-                </Button>
-
-                {isAdmin ? (
-                  <Button size="sm" variant="danger" onClick={() => deleteEmployee(employee.id)}>
-                    <Icon label="trash" /> Delete
-                  </Button>
-                ) : (
-                  <Button size="sm" variant="danger" onClick={() => deactivateEmployee(employee.id)}>
-                    Deactivate
-                  </Button>
-                )}
-              </div>
-            </td>
-          </tr>
-        );
+          return (
+            <React.Fragment key={employee.id}>
+              <tr className={`border-b ${isSelected ? "bg-slate-100" : "bg-white"}`}>
+                <td className="p-2">
+                  <button onClick={() => setSelectedEmployeeId(employee.id)} className="text-left">
+                    <p className="font-semibold">{employeeFullName(employee)}</p>
+                    <p className="text-xs text-slate-500">
+                      Staff No: {employee.staff_number || "-"}
+                    </p>
+                  </button>
+                </td>
+          
+                <td className="p-2">{departmentName(employee.department_id)}</td>
+                <td className="p-2 text-center">{employee.entitlement}</td>
+                <td className="p-2 text-center">{standardUsed}</td>
+                <td className={`p-2 text-center font-semibold ${remaining < 0 ? "text-red-600" : ""}`}>
+                  {remaining}
+                </td>
+                <td className="p-2 text-center">{exceptions}</td>
+                <td className="p-2 text-center">{sickDays}</td>
+          
+                <td className="p-2 text-center">
+                  <div className="flex justify-center gap-2">
+                    <Button size="sm" variant="outline" onClick={() => startEdit(employee)}>
+                      <Icon label="pencil" /> Edit
+                    </Button>
+          
+                    {isAdmin ? (
+                      <Button size="sm" variant="danger" onClick={() => deleteEmployee(employee.id)}>
+                        <Icon label="trash" /> Delete
+                      </Button>
+                    ) : (
+                      <Button size="sm" variant="danger" onClick={() => deactivateEmployee(employee.id)}>
+                        Deactivate
+                      </Button>
+                    )}
+                  </div>
+                </td>
+              </tr>
+          
+              {editingId === employee.id && (
+                <tr className="border-b bg-slate-50">
+                  <td colSpan={8} className="p-3">
+                    {/* Inline edit form keeps the table layout compact while editing employee details */}
+                    <div className="space-y-2 rounded-xl border bg-white p-3">
+                      <div className="grid grid-cols-2 gap-2 md:grid-cols-5">
+                        <input
+                          value={editFirstName}
+                          onChange={(e) => setEditFirstName(e.target.value)}
+                          className="rounded-xl border px-3 py-2 text-sm"
+                          placeholder="First name"
+                        />
+          
+                        <input
+                          value={editLastName}
+                          onChange={(e) => setEditLastName(e.target.value)}
+                          className="rounded-xl border px-3 py-2 text-sm"
+                          placeholder="Last name"
+                        />
+          
+                        <input
+                          value={editStaffNumber}
+                          onChange={(e) => setEditStaffNumber(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                          className="rounded-xl border px-3 py-2 text-sm"
+                          placeholder="Staff number"
+                        />
+          
+                        <input
+                          type="number"
+                          value={editEntitlement}
+                          onChange={(e) => setEditEntitlement(e.target.value)}
+                          className="rounded-xl border px-3 py-2 text-sm"
+                          placeholder="Entitlement"
+                        />
+          
+                        <select
+                          value={editDepartmentId}
+                          onChange={(e) => setEditDepartmentId(e.target.value)}
+                          className="rounded-xl border px-3 py-2 text-sm"
+                        >
+                          <option value="">No department</option>
+                          {departments.map((d) => (
+                            <option key={d.id} value={d.id}>
+                              {d.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+          
+                      <div className="flex gap-2">
+                        <Button size="sm" onClick={() => saveEdit(employee.id)}>
+                          <Icon label="save" /> Save
+                        </Button>
+          
+                        <Button size="sm" variant="outline" onClick={() => setEditingId(null)}>
+                          <Icon label="close" /> Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </React.Fragment>
+          );
       })}
     </tbody>
   </table>
