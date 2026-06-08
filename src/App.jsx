@@ -276,26 +276,20 @@ const isManager = userRole === "manager";
 const canManagePeople = isAdmin || isManager;
 const canManageBookings = isAdmin || isManager;
 const canManageDepartments = isAdmin;
-if (
-  activeView === "employees" &&
-  !canManagePeople
-) {
-  setActiveView("planner");
-}
+// Keep users on an allowed page if their role changes after login
+useEffect(() => {
+  if (activeView === "employees" && !canManagePeople) {
+    setActiveView("planner");
+  }
 
-if (
-  activeView === "departments" &&
-  !canManageDepartments
-) {
-  setActiveView("planner");
-}
+  if (activeView === "departments" && !canManageDepartments) {
+    setActiveView("planner");
+  }
 
-if (
-  activeView === "bookings" &&
-  !canManageBookings
-) {
-  setActiveView("planner");
-}
+  if (activeView === "bookings" && !canManageBookings) {
+    setActiveView("planner");
+  }
+}, [activeView, canManagePeople, canManageDepartments, canManageBookings]);
 
 
 const visibleEmployees = useMemo(() => {
@@ -562,6 +556,8 @@ exceptionType: h.exception_type,
   }
 
   async function addDepartment() {
+     // Only admins can create departments
+     if (!isAdmin) return;
     const name = newDepartmentName.trim();
     if (!name) return;
 
@@ -577,6 +573,8 @@ exceptionType: h.exception_type,
   }
 
   async function deleteDepartment(id) {
+     // Departments are soft deleted so historical employee records remain valid
+     if (!isAdmin) return;
     const { error } = await supabase
       .from("departments")
       .update({ active: false })
@@ -591,6 +589,8 @@ exceptionType: h.exception_type,
   }
 
   async function addEmployee() {
+    // Admins and managers can create employee records
+    if (!canManagePeople) return;
     const firstName = newFirstName.trim();
     const lastName = newLastName.trim();
     const staffNumber = newStaffNumber.trim();
@@ -616,6 +616,7 @@ exceptionType: h.exception_type,
       staff_number: staffNumber || null,
       department_id: newDepartmentId || null,
       entitlement: Number(newEntitlement) || 0,
+      active: true,
     });
 
     if (error) {
@@ -630,6 +631,8 @@ exceptionType: h.exception_type,
     await loadEmployees();
   }
   async function deactivateEmployee(id) {
+        // Managers deactivate employees instead of deleting historical records
+        if (!canManagePeople) return;
     const { error } = await supabase
       .from("employees")
       .update({ active: false })
@@ -645,6 +648,8 @@ exceptionType: h.exception_type,
   }
 
   async function deleteEmployee(id) {
+        // Permanent deletion is restricted to admins
+        if (!isAdmin) return;
     const { error } = await supabase.from("employees").delete().eq("id", id);
 
     if (error) {
@@ -666,6 +671,8 @@ exceptionType: h.exception_type,
   }
 
   async function saveEdit(id) {
+        // Admins and managers can update employee details
+        if (!canManagePeople) return;
     if (editStaffNumber && !/^[0-9]{1,10}$/.test(editStaffNumber)) {
       alert("Staff number must be up to 10 digits only.");
       return;
@@ -706,6 +713,8 @@ exceptionType: h.exception_type,
   }
 
   async function addHoliday() {
+     // Viewers can see the planner but cannot create bookings
+     if (!canManageBookings) return;
     if (!selectedEmployee || !holidayStart || !holidayEnd) return;
     if (fromISO(holidayEnd) < fromISO(holidayStart)) return;
 
@@ -730,6 +739,8 @@ payment_status: paymentStatus,
   }
 
   async function updateHoliday() {
+            // Admins and managers can edit bookings, including past bookings
+    if (!canManageBookings) return;
     if (!editingBooking) return;
   
     const { error } = await supabase
@@ -755,6 +766,8 @@ payment_status: paymentStatus,
   }
 
   async function deleteHoliday(employeeId, holidayId) {
+            // Booking deletion is restricted to admins and managers
+    if (!canManageBookings) return;
     const { error } = await supabase.from("holiday_bookings").delete().eq("id", holidayId);
 
     if (error) {
