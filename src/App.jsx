@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { supabase } from "./supabase";
+import ExcelJS from "exceljs";
 
 function Button({ children, onClick, type = "button", variant = "primary", size = "md", className = "", disabled = false }) {
   const base = "inline-flex items-center justify-center gap-1 rounded-xl font-medium transition disabled:cursor-not-allowed disabled:opacity-50";
@@ -814,27 +815,54 @@ export default function IrishHolidayPlanner() {
 
     await loadEmployees();
   }
-  function exportBookingsToExcel() {
-    // Export current booking data for offline reporting and manager review
-    const rows = employees.flatMap((employee) =>
-      employee.holidays.map((holiday) => ({
-        Employee: employeeFullName(employee),
-        "Staff Number": employee.staff_number || "",
-        Department: departmentName(employee.department_id),
-        "Leave Type": bookingTypeLabel(holiday),
-        Start: holiday.start,
-        End: holiday.end,
-        Days: bookingTotalWorkingDays(holiday, bankHolidayMap),
-        Paid: paymentStatusLabel(holiday),
-        Notes: holiday.notes || "",
-      }))
-    );
+  async function exportBookingsToExcel() {
+    // Build an Excel workbook in the browser for booking reporting
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Bookings");
 
-    const worksheet = XLSX.utils.json_to_sheet(rows);
-    const workbook = XLSX.utils.book_new();
+    worksheet.columns = [
+      { header: "Employee", key: "employee", width: 25 },
+      { header: "Staff Number", key: "staffNumber", width: 15 },
+      { header: "Department", key: "department", width: 20 },
+      { header: "Leave Type", key: "leaveType", width: 25 },
+      { header: "Start", key: "start", width: 15 },
+      { header: "End", key: "end", width: 15 },
+      { header: "Days", key: "days", width: 10 },
+      { header: "Paid", key: "paid", width: 12 },
+      { header: "Notes", key: "notes", width: 35 },
+    ];
 
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Bookings");
-    XLSX.writeFile(workbook, `holiday-bookings-${year}.xlsx`);
+    employees.forEach((employee) => {
+      employee.holidays.forEach((holiday) => {
+        worksheet.addRow({
+          employee: employeeFullName(employee),
+          staffNumber: employee.staff_number || "",
+          department: departmentName(employee.department_id),
+          leaveType: bookingTypeLabel(holiday),
+          start: holiday.start,
+          end: holiday.end,
+          days: bookingTotalWorkingDays(holiday, bankHolidayMap),
+          paid: paymentStatusLabel(holiday),
+          notes: holiday.notes || "",
+        });
+      });
+    });
+
+    worksheet.getRow(1).font = { bold: true };
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    });
+
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = `holiday-bookings-${year}.xlsx`;
+    link.click();
+
+    window.URL.revokeObjectURL(url);
   }
 
 
