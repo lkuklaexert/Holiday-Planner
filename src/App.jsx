@@ -221,123 +221,123 @@ function leaveTypeColorClass(booking) {
 }
 
 export default function IrishHolidayPlanner() {
-const currentYear = new Date().getFullYear();
-const defaultCurrentDate = toISO(new Date());
+  const currentYear = new Date().getFullYear();
+  const defaultCurrentDate = toISO(new Date());
 
-const [session, setSession] = useState(null);
-const [userRole, setUserRole] = useState("viewer");
-const [loginEmail, setLoginEmail] = useState("");
-const [loginPassword, setLoginPassword] = useState("");
-const [loginError, setLoginError] = useState("");
-const [employeeError, setEmployeeError] = useState("");
-const [departmentFilter, setDepartmentFilter] = useState("all");
-const [holidayWindowFilter, setHolidayWindowFilter] = useState(false);
-const [nameSort, setNameSort] = useState("az");
-const [activeView, setActiveView] = useState("planner");
-const [bookingSearch, setBookingSearch] = useState("");
-const [bookingLeaveTypeFilter, setBookingLeaveTypeFilter] = useState("all");
-const [bookingDateStatusFilter, setBookingDateStatusFilter] = useState("all");
-const [bookingPaidStatusFilter, setBookingPaidStatusFilter] = useState("all");
-const [editingBooking, setEditingBooking] = useState(null);
+  const [session, setSession] = useState(null);
+  const [userRole, setUserRole] = useState("viewer");
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPassword, setLoginPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
+  const [employeeError, setEmployeeError] = useState("");
+  const [departmentFilter, setDepartmentFilter] = useState("all");
+  const [holidayWindowFilter, setHolidayWindowFilter] = useState(false);
+  const [nameSort, setNameSort] = useState("az");
+  const [activeView, setActiveView] = useState("planner");
+  const [bookingSearch, setBookingSearch] = useState("");
+  const [bookingLeaveTypeFilter, setBookingLeaveTypeFilter] = useState("all");
+  const [bookingDateStatusFilter, setBookingDateStatusFilter] = useState("all");
+  const [bookingPaidStatusFilter, setBookingPaidStatusFilter] = useState("all");
+  const [editingBooking, setEditingBooking] = useState(null);
 
-const [year, setYear] = useState(currentYear);
-const [employees, setEmployees] = useState([]);
-const [departments, setDepartments] = useState([]);
-const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
+  const [year, setYear] = useState(currentYear);
+  const [employees, setEmployees] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
 
-const [newFirstName, setNewFirstName] = useState("");
-const [newLastName, setNewLastName] = useState("");
-const [newStaffNumber, setNewStaffNumber] = useState("");
-const [newDepartmentId, setNewDepartmentId] = useState("");
-const [newEntitlement, setNewEntitlement] = useState(25);
+  const [newFirstName, setNewFirstName] = useState("");
+  const [newLastName, setNewLastName] = useState("");
+  const [newStaffNumber, setNewStaffNumber] = useState("");
+  const [newDepartmentId, setNewDepartmentId] = useState("");
+  const [newEntitlement, setNewEntitlement] = useState(25);
 
-const [newDepartmentName, setNewDepartmentName] = useState("");
+  const [newDepartmentName, setNewDepartmentName] = useState("");
 
-const [holidayStart, setHolidayStart] = useState(defaultCurrentDate);
-const [holidayEnd, setHolidayEnd] = useState(defaultCurrentDate);
-const [dayAmount, setDayAmount] = useState(1);
-const [leaveCategory, setLeaveCategory] = useState("annual_leave");
-const [paymentStatus, setPaymentStatus] = useState("paid");
-const [holidayNotes, setHolidayNotes] = useState("");
+  const [holidayStart, setHolidayStart] = useState(defaultCurrentDate);
+  const [holidayEnd, setHolidayEnd] = useState(defaultCurrentDate);
+  const [dayAmount, setDayAmount] = useState(1);
+  const [leaveCategory, setLeaveCategory] = useState("annual_leave");
+  const [paymentStatus, setPaymentStatus] = useState("paid");
+  const [holidayNotes, setHolidayNotes] = useState("");
 
-const [editingId, setEditingId] = useState(null);
-const [editFirstName, setEditFirstName] = useState("");
-const [editLastName, setEditLastName] = useState("");
-const [editStaffNumber, setEditStaffNumber] = useState("");
-const [editDepartmentId, setEditDepartmentId] = useState("");
-const [editEntitlement, setEditEntitlement] = useState(25);
-  
+  const [editingId, setEditingId] = useState(null);
+  const [editFirstName, setEditFirstName] = useState("");
+  const [editLastName, setEditLastName] = useState("");
+  const [editStaffNumber, setEditStaffNumber] = useState("");
+  const [editDepartmentId, setEditDepartmentId] = useState("");
+  const [editEntitlement, setEditEntitlement] = useState(25);
+
 
   const bankHolidayMap = useMemo(() => getIrishBankHolidays(Number(year)), [year]);
   const yearDays = useMemo(() => getDaysInYear(Number(year)), [year]);
   const selectedEmployee = employees.find((e) => e.id === selectedEmployeeId) || employees[0];
   const isAdmin = userRole === "admin";
-const isManager = userRole === "manager";
-const canManagePeople = isAdmin || isManager;
-const canManageBookings = isAdmin || isManager;
-const canManageDepartments = isAdmin;
-// Keep users on an allowed page if their role changes after login
-useEffect(() => {
-  if (activeView === "employees" && !canManagePeople) {
-    setActiveView("planner");
-  }
-
-  if (activeView === "departments" && !canManageDepartments) {
-    setActiveView("planner");
-  }
-
-  if (activeView === "bookings" && !canManageBookings) {
-    setActiveView("planner");
-  }
-}, [activeView, canManagePeople, canManageDepartments, canManageBookings]);
-
-// Active employees are used in planner, bookings and dashboard calculations
-const activeEmployees = employees.filter((employee) => employee.active !== false);
-
-// Inactive employees are hidden from normal planning but visible to admins/managers
-const inactiveEmployees = employees.filter((employee) => employee.active === false);
-
-
-const visibleEmployees = useMemo(() => {
-  return activeEmployees
-  .filter((employee) => {
-    // Department filter
-    if (
-      departmentFilter !== "all" &&
-      employee.department_id !== departmentFilter
-    ) {
-      return false;
+  const isManager = userRole === "manager";
+  const canManagePeople = isAdmin || isManager;
+  const canManageBookings = isAdmin || isManager;
+  const canManageDepartments = isAdmin;
+  // Keep users on an allowed page if their role changes after login
+  useEffect(() => {
+    if (activeView === "employees" && !canManagePeople) {
+      setActiveView("planner");
     }
-  
-    // Upcoming holiday filter
-    if (holidayWindowFilter) {
-      const today = new Date();
-      const future = addDays(today, 30);
-  
-      const hasUpcomingHoliday = employee.holidays.some((holiday) => {
-        const holidayStart = fromISO(holiday.start);
-        const holidayEnd = fromISO(holiday.end);
-      
-        return holidayStart <= future && holidayEnd >= today;
+
+    if (activeView === "departments" && !canManageDepartments) {
+      setActiveView("planner");
+    }
+
+    if (activeView === "bookings" && !canManageBookings) {
+      setActiveView("planner");
+    }
+  }, [activeView, canManagePeople, canManageDepartments, canManageBookings]);
+
+  // Active employees are used in planner, bookings and dashboard calculations
+  const activeEmployees = employees.filter((employee) => employee.active !== false);
+
+  // Inactive employees are hidden from normal planning but visible to admins/managers
+  const inactiveEmployees = employees.filter((employee) => employee.active === false);
+
+
+  const visibleEmployees = useMemo(() => {
+    return activeEmployees
+      .filter((employee) => {
+        // Department filter
+        if (
+          departmentFilter !== "all" &&
+          employee.department_id !== departmentFilter
+        ) {
+          return false;
+        }
+
+        // Upcoming holiday filter
+        if (holidayWindowFilter) {
+          const today = new Date();
+          const future = addDays(today, 30);
+
+          const hasUpcomingHoliday = employee.holidays.some((holiday) => {
+            const holidayStart = fromISO(holiday.start);
+            const holidayEnd = fromISO(holiday.end);
+
+            return holidayStart <= future && holidayEnd >= today;
+          });
+
+          if (!hasUpcomingHoliday) {
+            return false;
+          }
+        }
+
+        return true;
+      })
+      .sort((a, b) => {
+        const nameA = employeeFullName(a).toLowerCase();
+        const nameB = employeeFullName(b).toLowerCase();
+
+        if (nameSort === "za") {
+          return nameB.localeCompare(nameA);
+        }
+
+        return nameA.localeCompare(nameB);
       });
-  
-      if (!hasUpcomingHoliday) {
-        return false;
-      }
-    }
-  
-    return true;
-  })
-    .sort((a, b) => {
-      const nameA = employeeFullName(a).toLowerCase();
-      const nameB = employeeFullName(b).toLowerCase();
-
-      if (nameSort === "za") {
-        return nameB.localeCompare(nameA);
-      }
-
-      return nameA.localeCompare(nameB);
-    });
   }, [activeEmployees, departmentFilter, nameSort, holidayWindowFilter, departments]);
 
   useEffect(() => {
@@ -440,13 +440,13 @@ const visibleEmployees = useMemo(() => {
       .select("role")
       .eq("id", userId)
       .single();
-  
+
     if (error) {
       console.error("User role load error:", error);
       setUserRole("viewer");
       return;
     }
-  
+
     setUserRole(data?.role || "viewer");
   }
 
@@ -475,12 +475,12 @@ const visibleEmployees = useMemo(() => {
       .from("employees")
       .select("*")
       .order("last_name", { ascending: true });
-  
+
     if (error) {
       console.error("Employees load error:", error);
       return;
     }
-  
+
     const employeesWithHolidays = await Promise.all(
       (data || []).map(async (employee) => {
         const { data: holidays, error: holidayError } = await supabase
@@ -488,9 +488,9 @@ const visibleEmployees = useMemo(() => {
           .select("*")
           .eq("employee_id", employee.id)
           .order("start_date", { ascending: true });
-  
+
         if (holidayError) console.error("Holiday load error:", holidayError);
-  
+
         return {
           ...employee,
           active: employee.active !== false,
@@ -510,19 +510,19 @@ const visibleEmployees = useMemo(() => {
         };
       })
     );
-  
+
     setEmployees(employeesWithHolidays);
-  
+
     const activeEmployees = employeesWithHolidays.filter(
       (employee) => employee.active !== false
     );
-  
+
     if (activeEmployees.length > 0) {
       setSelectedEmployeeId((current) => current || activeEmployees[0].id);
     }
   }
 
-    
+
   const holidayDayMap = useMemo(() => {
     const map = new Map();
 
@@ -556,7 +556,7 @@ const visibleEmployees = useMemo(() => {
   function leaveTypeDays(employee, leaveType, bankHolidayMap) {
     return employee.holidays.reduce((sum, holiday) => {
       if (holiday.leaveCategory !== leaveType) return sum;
-  
+
       return (
         sum +
         bookingTotalWorkingDays(
@@ -568,8 +568,8 @@ const visibleEmployees = useMemo(() => {
   }
 
   async function addDepartment() {
-     // Only admins can create departments
-     if (!isAdmin) return;
+    // Only admins can create departments
+    if (!isAdmin) return;
     const name = newDepartmentName.trim();
     if (!name) return;
 
@@ -585,8 +585,8 @@ const visibleEmployees = useMemo(() => {
   }
 
   async function deleteDepartment(id) {
-     // Departments are soft deleted so historical employee records remain valid
-     if (!isAdmin) return;
+    // Departments are soft deleted so historical employee records remain valid
+    if (!isAdmin) return;
     const { error } = await supabase
       .from("departments")
       .update({ active: false })
@@ -611,7 +611,7 @@ const visibleEmployees = useMemo(() => {
       setEmployeeError("First name, last name, staff number and department are required.");
       return;
     }
-    
+
     setEmployeeError("");
 
     if (staffNumber && !/^[0-9]{1,10}$/.test(staffNumber)) {
@@ -643,18 +643,18 @@ const visibleEmployees = useMemo(() => {
     await loadEmployees();
   }
   async function deactivateEmployee(id) {
-        // Managers deactivate employees instead of deleting historical records
-        if (!canManagePeople) return;
+    // Managers deactivate employees instead of deleting historical records
+    if (!canManagePeople) return;
     const { error } = await supabase
       .from("employees")
       .update({ active: false })
       .eq("id", id);
-  
+
     if (error) {
       alert(error.message);
       return;
     }
-  
+
     if (selectedEmployeeId === id) setSelectedEmployeeId("");
     await loadEmployees();
   }
@@ -662,23 +662,23 @@ const visibleEmployees = useMemo(() => {
   async function reactivateEmployee(id) {
     // Admins and managers can restore inactive employees when they return
     if (!canManagePeople) return;
-  
+
     const { error } = await supabase
       .from("employees")
       .update({ active: true })
       .eq("id", id);
-  
+
     if (error) {
       alert(error.message);
       return;
     }
-  
+
     await loadEmployees();
   }
 
   async function deleteEmployee(id) {
-        // Permanent deletion is restricted to admins
-        if (!isAdmin) return;
+    // Permanent deletion is restricted to admins
+    if (!isAdmin) return;
     const { error } = await supabase.from("employees").delete().eq("id", id);
 
     if (error) {
@@ -700,8 +700,8 @@ const visibleEmployees = useMemo(() => {
   }
 
   async function saveEdit(id) {
-        // Admins and managers can update employee details
-        if (!canManagePeople) return;
+    // Admins and managers can update employee details
+    if (!canManagePeople) return;
     if (editStaffNumber && !/^[0-9]{1,10}$/.test(editStaffNumber)) {
       alert("Staff number must be up to 10 digits only.");
       return;
@@ -742,8 +742,8 @@ const visibleEmployees = useMemo(() => {
   }
 
   async function addHoliday() {
-     // Viewers can see the planner but cannot create bookings
-     if (!canManageBookings) return;
+    // Viewers can see the planner but cannot create bookings
+    if (!canManageBookings) return;
     if (!selectedEmployee || !holidayStart || !holidayEnd) return;
     if (fromISO(holidayEnd) < fromISO(holidayStart)) return;
 
@@ -753,8 +753,8 @@ const visibleEmployees = useMemo(() => {
       end_date: holidayEnd,
       day_amount: dayAmount,
       leave_category: leaveCategory,
-exception_type: null,
-payment_status: paymentStatus,
+      exception_type: null,
+      payment_status: paymentStatus,
       notes: holidayNotes.trim(),
     });
 
@@ -768,10 +768,10 @@ payment_status: paymentStatus,
   }
 
   async function updateHoliday() {
-            // Admins and managers can edit bookings, including past bookings
+    // Admins and managers can edit bookings, including past bookings
     if (!canManageBookings) return;
     if (!editingBooking) return;
-  
+
     const { error } = await supabase
       .from("holiday_bookings")
       .update({
@@ -783,19 +783,19 @@ payment_status: paymentStatus,
         day_amount: dayAmount,
       })
       .eq("id", editingBooking.bookingId);
-  
+
     if (error) {
       alert(error.message);
       return;
     }
-  
+
     setEditingBooking(null);
-  
+
     await loadEmployees();
   }
 
   async function deleteHoliday(employeeId, holidayId) {
-            // Booking deletion is restricted to admins and managers
+    // Booking deletion is restricted to admins and managers
     if (!canManageBookings) return;
     const { error } = await supabase.from("holiday_bookings").delete().eq("id", holidayId);
 
@@ -809,29 +809,29 @@ payment_status: paymentStatus,
 
   function startEditBooking(employee, holiday) {
     setSelectedEmployeeId(employee.id);
-  
+
     setHolidayStart(holiday.start);
     setHolidayEnd(holiday.end);
-  
+
     setLeaveCategory(holiday.leaveCategory);
-  
+
     setPaymentStatus(
       holiday.paymentStatus || "paid"
     );
-  
+
     setHolidayNotes(
       holiday.notes || ""
     );
-  
+
     setDayAmount(
       holiday.dayAmount || 1
     );
-  
+
     setEditingBooking({
       employeeId: employee.id,
       bookingId: holiday.id,
     });
-  
+
     window.scrollTo({
       top: 0,
       behavior: "smooth",
@@ -843,61 +843,61 @@ payment_status: paymentStatus,
   const todayISO = toISO(new Date());
 
 
-const totalEmployees = activeEmployees.length;
+  const totalEmployees = activeEmployees.length;
 
-const currentlyOnLeave = employees.filter((employee) =>
-  employee.holidays.some((holiday) => {
-    return holiday.start <= todayISO && holiday.end >= todayISO;
-  })
-).length;
+  const currentlyOnLeave = employees.filter((employee) =>
+    employee.holidays.some((holiday) => {
+      return holiday.start <= todayISO && holiday.end >= todayISO;
+    })
+  ).length;
 
-const currentlyOnSickLeave = employees.filter((employee) =>
-  employee.holidays.some((holiday) => {
+  const currentlyOnSickLeave = employees.filter((employee) =>
+    employee.holidays.some((holiday) => {
+      return (
+        holiday.start <= todayISO &&
+        holiday.end >= todayISO &&
+        (
+          holiday.leaveCategory === "sickness_certified" ||
+          holiday.leaveCategory === "sickness_uncertified" ||
+          holiday.leaveCategory === "statutory_sick_leave"
+        )
+      );
+    })
+  ).length;
+
+  const next30Days = addDays(new Date(), 30);
+  const next30DaysISO = toISO(next30Days);
+
+  const upcomingBookings30Days = employees.reduce((sum, employee) => {
     return (
-      holiday.start <= todayISO &&
-      holiday.end >= todayISO &&
-      (
-        holiday.leaveCategory === "sickness_certified" ||
-        holiday.leaveCategory === "sickness_uncertified" ||
-        holiday.leaveCategory === "statutory_sick_leave"
-      )
+      sum +
+      employee.holidays.filter((holiday) => {
+        return holiday.start <= next30DaysISO && holiday.end >= todayISO;
+      }).length
     );
-  })
-).length;
+  }, 0);
 
-const next30Days = addDays(new Date(), 30);
-const next30DaysISO = toISO(next30Days);
-
-const upcomingBookings30Days = employees.reduce((sum, employee) => {
-  return (
-    sum +
-    employee.holidays.filter((holiday) => {
-      return holiday.start <= next30DaysISO && holiday.end >= todayISO;
-    }).length
-  );
-}, 0);
-
-const annualLeaveDaysBooked = employees.reduce((sum, employee) => {
-  return (
-    sum +
-    employee.holidays.reduce((holidaySum, holiday) => {
-      if (holiday.leaveCategory !== "annual_leave") return holidaySum;
-      return holidaySum + bookingTotalWorkingDays(holiday, bankHolidayMap);
-    }, 0)
-  );
-}, 0);
+  const annualLeaveDaysBooked = employees.reduce((sum, employee) => {
+    return (
+      sum +
+      employee.holidays.reduce((holidaySum, holiday) => {
+        if (holiday.leaveCategory !== "annual_leave") return holidaySum;
+        return holidaySum + bookingTotalWorkingDays(holiday, bankHolidayMap);
+      }, 0)
+    );
+  }, 0);
 
   function scrollCalendarToToday() {
     const el = document.getElementById("calendar-scroll-container");
     if (!el) return;
-  
+
     const today = new Date();
     const startOfYear = new Date(Number(year), 0, 1);
     const dayIndex = Math.floor((today - startOfYear) / (24 * 60 * 60 * 1000));
-  
+
     const approxColumnWidth = 35;
     const staticColumnsWidth = 368;
-  
+
     el.scrollLeft = Math.max(
       0,
       (dayIndex * approxColumnWidth) + 368
@@ -930,41 +930,41 @@ const annualLeaveDaysBooked = employees.reduce((sum, employee) => {
   return (
     <div className="min-h-screen bg-slate-50 p-4 text-slate-900">
       <div className="mx-auto max-w-[1600px] space-y-4">
-      <div className="flex flex-wrap gap-2 rounded-2xl bg-white p-3 shadow-sm">
-  <Button
-    variant={activeView === "planner" ? "primary" : "outline"}
-    onClick={() => setActiveView("planner")}
-  >
-    Planner
-  </Button>
+        <div className="flex flex-wrap gap-2 rounded-2xl bg-white p-3 shadow-sm">
+          <Button
+            variant={activeView === "planner" ? "primary" : "outline"}
+            onClick={() => setActiveView("planner")}
+          >
+            Planner
+          </Button>
 
-  {canManagePeople && (
-  <Button
-    variant={activeView === "employees" ? "primary" : "outline"}
-    onClick={() => setActiveView("employees")}
-  >
-    Employees
-  </Button>
-)}
+          {canManagePeople && (
+            <Button
+              variant={activeView === "employees" ? "primary" : "outline"}
+              onClick={() => setActiveView("employees")}
+            >
+              Employees
+            </Button>
+          )}
 
-{canManageDepartments && (
-  <Button
-    variant={activeView === "departments" ? "primary" : "outline"}
-    onClick={() => setActiveView("departments")}
-  >
-    Departments
-  </Button>
-)}
+          {canManageDepartments && (
+            <Button
+              variant={activeView === "departments" ? "primary" : "outline"}
+              onClick={() => setActiveView("departments")}
+            >
+              Departments
+            </Button>
+          )}
 
-{canManageBookings && (
-  <Button
-    variant={activeView === "bookings" ? "primary" : "outline"}
-    onClick={() => setActiveView("bookings")}
-  >
-    Bookings
-  </Button>
-)}
-</div>
+          {canManageBookings && (
+            <Button
+              variant={activeView === "bookings" ? "primary" : "outline"}
+              onClick={() => setActiveView("bookings")}
+            >
+              Bookings
+            </Button>
+          )}
+        </div>
         <div className="flex flex-col gap-3 rounded-2xl bg-white p-5 shadow-sm md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Irish Employee Holiday Planner</h1>
@@ -1005,186 +1005,200 @@ const annualLeaveDaysBooked = employees.reduce((sum, employee) => {
                   {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
                 </select>
                 {employeeError && (
-  <p className="text-sm text-red-600">
-    {employeeError}
-  </p>
-)}
+                  <p className="text-sm text-red-600">
+                    {employeeError}
+                  </p>
+                )}
 
                 <Button onClick={addEmployee} className="w-full"><Icon label="plus" /> Add employee</Button>
 
                 <div className="overflow-auto rounded-xl border">
-  <table className="min-w-full border-collapse text-sm">
-    <thead>
-      <tr className="border-b bg-slate-100">
-        <th className="p-2 text-left">Employee</th>
-        <th className="p-2 text-left">Department</th>
-        <th className="p-2 text-center">Ent.</th>
-        <th className="p-2 text-center">Used</th>
-        <th className="p-2 text-center">Remain</th>
-        <th className="p-2 text-center">Exceptions</th>
-        <th className="p-2 text-center">Sick</th>
-        <th className="p-2 text-center">Actions</th>
-      </tr>
-    </thead>
+                  <table className="min-w-full border-collapse text-sm">
+                    <thead>
+                      <tr className="border-b bg-slate-100">
+                        <th className="p-2 text-left">Employee</th>
+                        <th className="p-2 text-left">Department</th>
+                        <th className="p-2 text-center">Ent.</th>
+                        <th className="p-2 text-center">Used</th>
+                        <th className="p-2 text-center">Remain</th>
+                        <th className="p-2 text-center">Exceptions</th>
+                        <th className="p-2 text-center">Sick</th>
+                        <th className="p-2 text-center">Actions</th>
+                      </tr>
+                    </thead>
 
-    <tbody>
-      {activeEmployees.map((employee) => {
-        const standardUsed = usedDays(employee);
-        const exceptions = exceptionDays(employee);
-        const remaining = employee.entitlement - standardUsed;
-        const isSelected = selectedEmployeeId === employee.id;
-        const sickDays =
-          leaveTypeDays(employee, "sickness_certified", bankHolidayMap) +
-          leaveTypeDays(employee, "sickness_uncertified", bankHolidayMap) +
-          leaveTypeDays(employee, "statutory_sick_leave", bankHolidayMap);
+                    <tbody>
+                      {activeEmployees.map((employee) => {
+                        const standardUsed = usedDays(employee);
+                        const exceptions = exceptionDays(employee);
+                        const remaining = employee.entitlement - standardUsed;
+                        const isSelected = selectedEmployeeId === employee.id;
+                        const sickDays =
+                          leaveTypeDays(employee, "sickness_certified", bankHolidayMap) +
+                          leaveTypeDays(employee, "sickness_uncertified", bankHolidayMap) +
+                          leaveTypeDays(employee, "statutory_sick_leave", bankHolidayMap);
 
-          return (
-            <React.Fragment key={employee.id}>
-              <tr className={`border-b ${isSelected ? "bg-slate-100" : "bg-white"}`}>
-                <td className="p-2">
-                  <button onClick={() => setSelectedEmployeeId(employee.id)} className="text-left">
-                    <p className="font-semibold">{employeeFullName(employee)}</p>
-                    <p className="text-xs text-slate-500">
-                      Staff No: {employee.staff_number || "-"}
-                    </p>
-                  </button>
-                </td>
-          
-                <td className="p-2">{departmentName(employee.department_id)}</td>
-                <td className="p-2 text-center">{employee.entitlement}</td>
-                <td className="p-2 text-center">{standardUsed}</td>
-                <td className={`p-2 text-center font-semibold ${remaining < 0 ? "text-red-600" : ""}`}>
-                  {remaining}
-                </td>
-                <td className="p-2 text-center">{exceptions}</td>
-                <td className="p-2 text-center">{sickDays}</td>
-          
-                <td className="p-2 text-center">
-                  <div className="flex justify-center gap-2">
-                    <Button size="sm" variant="outline" onClick={() => startEdit(employee)}>
-                      <Icon label="pencil" /> Edit
-                    </Button>
-          
-                    {isAdmin ? (
-                      <Button size="sm" variant="danger" onClick={() => deleteEmployee(employee.id)}>
-                        <Icon label="trash" /> Delete
-                      </Button>
-                    ) : (
-                      <Button size="sm" variant="danger" onClick={() => deactivateEmployee(employee.id)}>
-                        Deactivate
-                      </Button>
-                    )}
+                        return (
+                          <React.Fragment key={employee.id}>
+                            <tr className={`border-b ${isSelected ? "bg-slate-100" : "bg-white"}`}>
+                              <td className="p-2">
+                                <button onClick={() => setSelectedEmployeeId(employee.id)} className="text-left">
+                                  <p className="font-semibold">{employeeFullName(employee)}</p>
+                                  <p className="text-xs text-slate-500">
+                                    Staff No: {employee.staff_number || "-"}
+                                  </p>
+                                </button>
+                              </td>
+
+                              <td className="p-2">{departmentName(employee.department_id)}</td>
+                              <td className="p-2 text-center">{employee.entitlement}</td>
+                              <td className="p-2 text-center">{standardUsed}</td>
+                              <td className={`p-2 text-center font-semibold ${remaining < 0 ? "text-red-600" : ""}`}>
+                                {remaining}
+                              </td>
+                              <td className="p-2 text-center">{exceptions}</td>
+                              <td className="p-2 text-center">{sickDays}</td>
+
+                              <td className="p-2 text-center">
+                                <div className="flex justify-center gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => startEdit(employee)}
+                                  >
+                                    <Icon label="pencil" /> Edit
+                                  </Button>
+
+                                  {/* Both admins and managers can deactivate employees */}
+                                  <Button
+                                    size="sm"
+                                    variant="danger"
+                                    onClick={() => deactivateEmployee(employee.id)}
+                                  >
+                                    Deactivate
+                                  </Button>
+
+                                  {/* Permanent deletion remains admin-only */}
+                                  {isAdmin && (
+                                    <Button
+                                      size="sm"
+                                      variant="danger"
+                                      onClick={() => deleteEmployee(employee.id)}
+                                    >
+                                      <Icon label="trash" /> Delete
+                                    </Button>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+
+                            {editingId === employee.id && (
+                              <tr className="border-b bg-slate-50">
+                                <td colSpan={8} className="p-3">
+                                  {/* Inline edit form keeps the table layout compact while editing employee details */}
+                                  <div className="space-y-2 rounded-xl border bg-white p-3">
+                                    <div className="grid grid-cols-2 gap-2 md:grid-cols-5">
+                                      <input
+                                        value={editFirstName}
+                                        onChange={(e) => setEditFirstName(e.target.value)}
+                                        className="rounded-xl border px-3 py-2 text-sm"
+                                        placeholder="First name"
+                                      />
+
+                                      <input
+                                        value={editLastName}
+                                        onChange={(e) => setEditLastName(e.target.value)}
+                                        className="rounded-xl border px-3 py-2 text-sm"
+                                        placeholder="Last name"
+                                      />
+
+                                      <input
+                                        value={editStaffNumber}
+                                        onChange={(e) => setEditStaffNumber(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                                        className="rounded-xl border px-3 py-2 text-sm"
+                                        placeholder="Staff number"
+                                      />
+
+                                      <input
+                                        type="number"
+                                        value={editEntitlement}
+                                        onChange={(e) => setEditEntitlement(e.target.value)}
+                                        className="rounded-xl border px-3 py-2 text-sm"
+                                        placeholder="Entitlement"
+                                      />
+
+                                      <select
+                                        value={editDepartmentId}
+                                        onChange={(e) => setEditDepartmentId(e.target.value)}
+                                        className="rounded-xl border px-3 py-2 text-sm"
+                                      >
+                                        <option value="">No department</option>
+                                        {departments.map((d) => (
+                                          <option key={d.id} value={d.id}>
+                                            {d.name}
+                                          </option>
+                                        ))}
+                                      </select>
+                                    </div>
+
+                                    <div className="flex gap-2">
+                                      <Button size="sm" onClick={() => saveEdit(employee.id)}>
+                                        <Icon label="save" /> Save
+                                      </Button>
+
+                                      <Button size="sm" variant="outline" onClick={() => setEditingId(null)}>
+                                        <Icon label="close" /> Cancel
+                                      </Button>
+                                    </div>
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                          </React.Fragment>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {canManagePeople && inactiveEmployees.length > 0 && (
+                  <div className="mt-6 space-y-2">
+                    <h3 className="font-semibold text-slate-700">Inactive Employees</h3>
+
+                    {inactiveEmployees.map((employee) => (
+                      <div key={employee.id} className="flex items-center justify-between rounded-xl border bg-slate-50 p-3 text-sm">
+                        <div>
+                          <p className="font-semibold text-slate-700">{employeeFullName(employee)}</p>
+                          <p className="text-xs text-slate-500">
+                            Staff No: {employee.staff_number || "-"} | Dept: {departmentName(employee.department_id)}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <span className="rounded-full bg-slate-200 px-3 py-1 text-xs text-slate-700">
+                            Inactive
+                          </span>
+
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => reactivateEmployee(employee.id)}
+                          >
+                            Reactivate
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                </td>
-              </tr>
-          
-              {editingId === employee.id && (
-                <tr className="border-b bg-slate-50">
-                  <td colSpan={8} className="p-3">
-                    {/* Inline edit form keeps the table layout compact while editing employee details */}
-                    <div className="space-y-2 rounded-xl border bg-white p-3">
-                      <div className="grid grid-cols-2 gap-2 md:grid-cols-5">
-                        <input
-                          value={editFirstName}
-                          onChange={(e) => setEditFirstName(e.target.value)}
-                          className="rounded-xl border px-3 py-2 text-sm"
-                          placeholder="First name"
-                        />
-          
-                        <input
-                          value={editLastName}
-                          onChange={(e) => setEditLastName(e.target.value)}
-                          className="rounded-xl border px-3 py-2 text-sm"
-                          placeholder="Last name"
-                        />
-          
-                        <input
-                          value={editStaffNumber}
-                          onChange={(e) => setEditStaffNumber(e.target.value.replace(/\D/g, "").slice(0, 10))}
-                          className="rounded-xl border px-3 py-2 text-sm"
-                          placeholder="Staff number"
-                        />
-          
-                        <input
-                          type="number"
-                          value={editEntitlement}
-                          onChange={(e) => setEditEntitlement(e.target.value)}
-                          className="rounded-xl border px-3 py-2 text-sm"
-                          placeholder="Entitlement"
-                        />
-          
-                        <select
-                          value={editDepartmentId}
-                          onChange={(e) => setEditDepartmentId(e.target.value)}
-                          className="rounded-xl border px-3 py-2 text-sm"
-                        >
-                          <option value="">No department</option>
-                          {departments.map((d) => (
-                            <option key={d.id} value={d.id}>
-                              {d.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-          
-                      <div className="flex gap-2">
-                        <Button size="sm" onClick={() => saveEdit(employee.id)}>
-                          <Icon label="save" /> Save
-                        </Button>
-          
-                        <Button size="sm" variant="outline" onClick={() => setEditingId(null)}>
-                          <Icon label="close" /> Cancel
-                        </Button>
-                      </div>
-                    </div>
-                  </td>
-                </tr>
-              )}
-            </React.Fragment>
-          );
-      })}
-    </tbody>
-  </table>
-</div>
+                )}
 
-{canManagePeople && inactiveEmployees.length > 0 && (
-  <div className="mt-6 space-y-2">
-    <h3 className="font-semibold text-slate-700">Inactive Employees</h3>
-
-    {inactiveEmployees.map((employee) => (
-      <div key={employee.id} className="flex items-center justify-between rounded-xl border bg-slate-50 p-3 text-sm">
-        <div>
-          <p className="font-semibold text-slate-700">{employeeFullName(employee)}</p>
-          <p className="text-xs text-slate-500">
-            Staff No: {employee.staff_number || "-"} | Dept: {departmentName(employee.department_id)}
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-  <span className="rounded-full bg-slate-200 px-3 py-1 text-xs text-slate-700">
-    Inactive
-  </span>
-
-  <Button
-    size="sm"
-    variant="outline"
-    onClick={() => reactivateEmployee(employee.id)}
-  >
-    Reactivate
-  </Button>
-</div>
-      </div>
-    ))}
-  </div>
-)}
-
-</CardContent>
+              </CardContent>
             </Card>
           </div>
         )}
 
-{activeView === "departments" && (
-<div className="space-y-4">
+        {activeView === "departments" && (
+          <div className="space-y-4">
             <Card>
               <CardContent className="space-y-3 p-4">
                 <h2 className="font-semibold">Departments Admin</h2>
@@ -1202,13 +1216,13 @@ const annualLeaveDaysBooked = employees.reduce((sum, employee) => {
                 </div>
               </CardContent>
             </Card>
-            </div>
-)}
+          </div>
+        )}
 
-{activeView === "bookings" && (
-<div className="space-y-4">
+        {activeView === "bookings" && (
+          <div className="space-y-4">
 
-<Card>
+            <Card>
               <CardContent className="space-y-3 p-4">
                 <h2 className="font-semibold">Add leave / holiday</h2>
 
@@ -1237,426 +1251,426 @@ const annualLeaveDaysBooked = employees.reduce((sum, employee) => {
                 <div>
                   <label className="text-xs text-slate-600">Leave category</label>
                   <select
-  value={leaveCategory}
-  onChange={(e) => setLeaveCategory(e.target.value)}
-  className="w-full rounded-xl border px-3 py-2 text-sm"
->
-  {LEAVE_TYPES.map((type) => (
-    <option key={type.value} value={type.value}>
-      {type.label}
-    </option>
-  ))}
-</select>
+                    value={leaveCategory}
+                    onChange={(e) => setLeaveCategory(e.target.value)}
+                    className="w-full rounded-xl border px-3 py-2 text-sm"
+                  >
+                    {LEAVE_TYPES.map((type) => (
+                      <option key={type.value} value={type.value}>
+                        {type.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
-  <label className="text-xs text-slate-600">Paid status</label>
-  <select
-    value={paymentStatus}
-    onChange={(e) => setPaymentStatus(e.target.value)}
-    className="w-full rounded-xl border px-3 py-2 text-sm"
-  >
-    <option value="paid">Paid</option>
-    <option value="unpaid">Unpaid</option>
-  </select>
-</div>
+                  <label className="text-xs text-slate-600">Paid status</label>
+                  <select
+                    value={paymentStatus}
+                    onChange={(e) => setPaymentStatus(e.target.value)}
+                    className="w-full rounded-xl border px-3 py-2 text-sm"
+                  >
+                    <option value="paid">Paid</option>
+                    <option value="unpaid">Unpaid</option>
+                  </select>
+                </div>
 
                 <textarea value={holidayNotes} onChange={(e) => setHolidayNotes(e.target.value)} className="min-h-[70px] w-full rounded-xl border px-3 py-2 text-sm" placeholder="Optional note" />
                 <Button
-  onClick={editingBooking ? updateHoliday : addHoliday}
-  className="w-full"
-  disabled={!selectedEmployee}
->
-  {editingBooking ? "Update booking" : "Add booking"}
-</Button>
+                  onClick={editingBooking ? updateHoliday : addHoliday}
+                  className="w-full"
+                  disabled={!selectedEmployee}
+                >
+                  {editingBooking ? "Update booking" : "Add booking"}
+                </Button>
 
-{editingBooking && (
-  <Button
-    variant="outline"
-    className="w-full mt-2"
-    onClick={() => {
-      setEditingBooking(null);
-    }}
-  >
-    Cancel edit
-  </Button>
-)}
+                {editingBooking && (
+                  <Button
+                    variant="outline"
+                    className="w-full mt-2"
+                    onClick={() => {
+                      setEditingBooking(null);
+                    }}
+                  >
+                    Cancel edit
+                  </Button>
+                )}
               </CardContent>
             </Card>
 
             <Card>
-  <CardContent className="p-4">
-    <h2 className="mb-4 font-semibold">All Bookings</h2>
-    <div className="mb-4 grid gap-2 md:grid-cols-[1fr_200px_200px_200px_200px]">
-  <input
-    type="text"
-    placeholder="Search employee..."
-    value={bookingSearch}
-    onChange={(e) => setBookingSearch(e.target.value)}
-    className="w-full rounded-xl border px-3 py-2 text-sm"
-  />
+              <CardContent className="p-4">
+                <h2 className="mb-4 font-semibold">All Bookings</h2>
+                <div className="mb-4 grid gap-2 md:grid-cols-[1fr_200px_200px_200px_200px]">
+                  <input
+                    type="text"
+                    placeholder="Search employee..."
+                    value={bookingSearch}
+                    onChange={(e) => setBookingSearch(e.target.value)}
+                    className="w-full rounded-xl border px-3 py-2 text-sm"
+                  />
 
-  <select
-    value={departmentFilter}
-    onChange={(e) => setDepartmentFilter(e.target.value)}
-    className="w-full rounded-xl border px-3 py-2 text-sm"
-  >
-    <option value="all">All departments</option>
-    {departments.map((department) => (
-      <option key={department.id} value={department.id}>
-        {department.name}
-      </option>
-    ))}
-  </select>
-  <select
-  value={bookingLeaveTypeFilter}
-  onChange={(e) => setBookingLeaveTypeFilter(e.target.value)}
-  className="w-full rounded-xl border px-3 py-2 text-sm"
->
-  <option value="all">All leave types</option>
-
-  {LEAVE_TYPES.map((type) => (
-    <option key={type.value} value={type.value}>
-      {type.label}
-    </option>
-  ))}
-</select>
-<select
-  value={bookingDateStatusFilter}
-  onChange={(e) => setBookingDateStatusFilter(e.target.value)}
-  className="w-full rounded-xl border px-3 py-2 text-sm"
->
-  <option value="all">All dates</option>
-  <option value="current">Currently on leave</option>
-  <option value="future">Future bookings</option>
-  <option value="past">Past bookings</option>
-</select>
-<select
-  value={bookingPaidStatusFilter}
-  onChange={(e) => setBookingPaidStatusFilter(e.target.value)}
-  className="w-full rounded-xl border px-3 py-2 text-sm"
->
-  <option value="all">All paid statuses</option>
-  <option value="paid">Paid</option>
-  <option value="unpaid">Unpaid</option>
-</select>
-</div>
-    <div className="overflow-auto">
-      <table className="min-w-full border-collapse text-sm">
-        <thead>
-          <tr className="border-b bg-slate-100">
-            <th className="p-2 text-left">Employee</th>
-            <th className="p-2 text-left">Department</th>
-            <th className="p-2 text-left">Start</th>
-            <th className="p-2 text-left">End</th>
-            <th className="p-2 text-center">Days</th>
-            <th className="p-2 text-left">Type</th>
-            <th className="p-2 text-left">Paid</th>
-            <th className="p-2 text-left">Notes</th>
-            <th className="p-2 text-center">Actions</th>
-          </tr>
-        </thead>
-
-        <tbody>
-        {employees
-  .filter((employee) => {
-    const matchesSearch = employeeFullName(employee)
-      .toLowerCase()
-      .includes(bookingSearch.toLowerCase());
-
-    const matchesDepartment =
-      departmentFilter === "all" ||
-      employee.department_id === departmentFilter;
-
-    return matchesSearch && matchesDepartment;
-    
-  })
-  .flatMap((employee) =>
-  employee.holidays
-  .filter((holiday) => {
-    const today = new Date();
-    const holidayStart = fromISO(holiday.start);
-    const holidayEnd = fromISO(holiday.end);
-
-    const matchesLeaveType =
-      bookingLeaveTypeFilter === "all" ||
-      holiday.leaveCategory === bookingLeaveTypeFilter;
-
-    const matchesDateStatus =
-      bookingDateStatusFilter === "all" ||
-      (bookingDateStatusFilter === "current" &&
-        holidayStart <= today &&
-        holidayEnd >= today) ||
-      (bookingDateStatusFilter === "future" &&
-        holidayStart > today) ||
-      (bookingDateStatusFilter === "past" &&
-        holidayEnd < today);
-
-        const matchesPaidStatus =
-  bookingPaidStatusFilter === "all" ||
-  holiday.paymentStatus === bookingPaidStatusFilter;
-
-  return matchesLeaveType && matchesDateStatus && matchesPaidStatus;
-  })
-  .map((holiday) => (
-              <tr key={holiday.id} className="border-b">
-                <td className="p-2">
-                  {employeeFullName(employee)}
-                </td>
-
-                <td className="p-2">
-                  {departmentName(employee.department_id)}
-                </td>
-
-                <td className="p-2">
-                  {holiday.start}
-                </td>
-
-                <td className="p-2">
-                  {holiday.end}
-                </td>
-
-                <td className="p-2 text-center">
-                  {bookingTotalWorkingDays(
-                    holiday,
-                    bankHolidayMap
-                  )}
-                </td>
-
-                <td className="p-2">
-                  {bookingTypeLabel(holiday)}
-                </td>
-
-                <td className="p-2">
-                  {paymentStatusLabel(holiday)}
-                </td>
-
-                <td className="p-2">
-                  {holiday.notes || "-"}
-                </td>
-
-                <td className="p-2 text-center">
-                <div className="flex justify-center gap-2">
-  <Button
-    size="sm"
-    onClick={() => startEditBooking(employee, holiday)}
-  >
-    Edit
-  </Button>
-
-  <Button
-    size="sm"
-    variant="danger"
-    onClick={() =>
-      deleteHoliday(employee.id, holiday.id)
-    }
-  >
-    Delete
-  </Button>
-</div>
-                </td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
-    </div>
-  </CardContent>
-</Card>
-          </div>
-)}
-{activeView === "planner" && (
-  <div className="space-y-4">
-    <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-5">
-      <Card>
-        <CardContent className="p-4">
-          <p className="text-xs text-slate-500">Employees</p>
-          <p className="text-2xl font-bold">{totalEmployees}</p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent className="p-4">
-          <p className="text-xs text-slate-500">Currently on Leave</p>
-          <p className="text-2xl font-bold">{currentlyOnLeave}</p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent className="p-4">
-          <p className="text-xs text-slate-500">Currently Sick</p>
-          <p className="text-2xl font-bold">{currentlyOnSickLeave}</p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent className="p-4">
-          <p className="text-xs text-slate-500">Bookings Next 30 Days</p>
-          <p className="text-2xl font-bold">{upcomingBookings30Days}</p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent className="p-4">
-          <p className="text-xs text-slate-500">Annual Leave Days Booked</p>
-          <p className="text-2xl font-bold">{annualLeaveDaysBooked}</p>
-        </CardContent>
-      </Card>
-    </div>
-
-    <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
-          <div className="flex flex-wrap items-center gap-3 border-b p-4 text-sm">
-  <label className="font-medium">Department</label>
-
-  <select
-    value={departmentFilter}
-    onChange={(e) => setDepartmentFilter(e.target.value)}
-    className="rounded-xl border px-3 py-2 text-sm"
-  >
-    <option value="all">All departments</option>
-
-    {departments.map((department) => (
-      <option key={department.id} value={department.id}>
-        {department.name}
-      </option>
-    ))}
-  </select>
-
-  <label className="font-medium">Sort</label>
-
-  <select
-    value={nameSort}
-    onChange={(e) => setNameSort(e.target.value)}
-    className="rounded-xl border px-3 py-2 text-sm"
-  >
-    <option value="az">Name A → Z</option>
-    <option value="za">Name Z → A</option>
-  </select>
-  <label className="flex items-center gap-2 font-medium">
-  <input
-  type="checkbox"
-  checked={holidayWindowFilter}
-  onChange={(e) => {
-    setHolidayWindowFilter(e.target.checked);
-
-    if (e.target.checked) {
-      setTimeout(scrollCalendarToToday, 50);
-    }
-  }}
-/>
-
-  Upcoming holidays (30 days)
-</label>
-</div>
-            <div className="flex flex-wrap gap-3 border-b p-4 text-xs">
-              <span className="rounded-full bg-white px-3 py-1 ring-1 ring-slate-200">Weekday</span>
-              <span className="rounded-full bg-slate-200 px-3 py-1">Weekend</span>
-              <span className="rounded-full bg-amber-200 px-3 py-1">Irish bank holiday</span>
-              <span className="rounded-full bg-emerald-200 px-3 py-1">Annual Leave</span>
-<span className="rounded-full bg-red-200 px-3 py-1">Certified Sick</span>
-<span className="rounded-full bg-orange-200 px-3 py-1">Uncertified Sick</span>
-<span className="rounded-full bg-purple-200 px-3 py-1">Compassionate / Bereavement</span>
-<span className="rounded-full bg-indigo-200 px-3 py-1">Jury Service</span>
-<span className="rounded-full bg-pink-200 px-3 py-1">Family Leave</span>
-<span className="rounded-full bg-sky-200 px-3 py-1">Other Leave</span>
-            </div>
-
-            <div id="calendar-scroll-container" className="overflow-auto" ref={(el) => {
-              if (el && !el.dataset.scrolled && !holidayWindowFilter) {
-                const approxColumnWidth = 34;
-                const staticColumnsWidth = 490;
-                el.scrollLeft = staticColumnsWidth + (currentMonth * 31 * approxColumnWidth);
-                el.dataset.scrolled = "true";
-              }
-            }}>
-              <table className="min-w-full border-collapse text-xs">
-                <thead className="sticky top-0 z-10 bg-white shadow-sm">
-                  <tr>
-                    <th className="sticky left-0 z-20 min-w-[220px] bg-white p-2 text-left">Employee</th>
-                    <th className="min-w-[90px] p-2 text-center">Staff No.</th>
-                    <th className="min-w-[110px] p-2 text-center">Dept.</th>
-                    <th className="min-w-[70px] p-2 text-center">Ent.</th>
-                    <th className="min-w-[90px] p-2 text-center">Std Used</th>
-                    <th className="min-w-[70px] p-2 text-center">Except.</th>
-                    <th className="min-w-[80px] p-2 text-center">Remain</th>
-
-                    {yearDays.map((date) => (
-                      <th key={toISO(date)} className="min-w-[34px] border-l p-1 text-center font-medium">
-                        <div>{date.getDate()}</div>
-                        <div className="text-[10px] text-slate-500">{months[date.getMonth()]}</div>
-                      </th>
+                  <select
+                    value={departmentFilter}
+                    onChange={(e) => setDepartmentFilter(e.target.value)}
+                    className="w-full rounded-xl border px-3 py-2 text-sm"
+                  >
+                    <option value="all">All departments</option>
+                    {departments.map((department) => (
+                      <option key={department.id} value={department.id}>
+                        {department.name}
+                      </option>
                     ))}
-                  </tr>
-                </thead>
+                  </select>
+                  <select
+                    value={bookingLeaveTypeFilter}
+                    onChange={(e) => setBookingLeaveTypeFilter(e.target.value)}
+                    className="w-full rounded-xl border px-3 py-2 text-sm"
+                  >
+                    <option value="all">All leave types</option>
 
-                <tbody>
-                  {visibleEmployees.map((employee) => {
-                    const standardUsed = usedDays(employee);
-                    const exceptions = exceptionDays(employee);
-                    const remaining = employee.entitlement - standardUsed;
-                    const employeeHolidayMap = holidayDayMap.get(employee.id) || new Map();
-
-                    return (
-                      <tr key={employee.id} className="border-t">
-                        <td className="sticky left-0 z-10 bg-white p-2 font-semibold">{employeeFullName(employee)}</td>
-                        <td className="p-2 text-center">{employee.staff_number || "-"}</td>
-                        <td className="p-2 text-center">{departmentName(employee.department_id)}</td>
-                        <td className="p-2 text-center">{employee.entitlement}</td>
-                        <td className="p-2 text-center">{standardUsed}</td>
-                        <td className="p-2 text-center">{exceptions}</td>
-                        <td className={`p-2 text-center font-semibold ${remaining < 0 ? "text-red-600" : "text-slate-900"}`}>{remaining}</td>
-
-                        {yearDays.map((date) => {
-                          const iso = toISO(date);
-                          const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-                          const bankName = bankHolidayMap.get(iso);
-                          const booking = employeeHolidayMap.get(iso);
-                          const isToday = iso === toISO(new Date());
-
-                          let cls = "bg-white";
-                          let mark = "";
-
-                          if (isWeekend) cls = "bg-slate-200";
-                          if (bankName) { cls = "bg-amber-200"; mark = "BH"; }
-                          if (booking) {
-                            cls = leaveTypeColorClass(booking);
-                            mark = Number(booking.dayAmount) === 0.5 ? "½" : isStandardBooking(booking) ? "H" : "L";
-                          }
-
-                          return (
-                            <td
-                              key={iso}
-                              className={`h-8 border-l text-center ${isToday ? "bg-orange-100 font-bold" : cls}`}
-                              title={`${employeeFullName(employee)} | ${iso}`}
-                            >
-                              {mark}
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-              </div>
-        </div>
-      </div>
-)}
-
-
-{activeView === "planner" && (
-        <Card>
-          <CardContent className="p-4">
-            <h2 className="mb-2 font-semibold">Irish bank holidays included for {year}</h2>
-            <div className="grid gap-2 text-sm md:grid-cols-2 lg:grid-cols-3">
-              {[...bankHolidayMap.entries()].sort().map(([date, name]) => (
-                <div key={date} className="rounded-xl bg-amber-100 px-3 py-2">
-                  <span className="font-medium">{date}</span> — {name}
+                    {LEAVE_TYPES.map((type) => (
+                      <option key={type.value} value={type.value}>
+                        {type.label}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    value={bookingDateStatusFilter}
+                    onChange={(e) => setBookingDateStatusFilter(e.target.value)}
+                    className="w-full rounded-xl border px-3 py-2 text-sm"
+                  >
+                    <option value="all">All dates</option>
+                    <option value="current">Currently on leave</option>
+                    <option value="future">Future bookings</option>
+                    <option value="past">Past bookings</option>
+                  </select>
+                  <select
+                    value={bookingPaidStatusFilter}
+                    onChange={(e) => setBookingPaidStatusFilter(e.target.value)}
+                    className="w-full rounded-xl border px-3 py-2 text-sm"
+                  >
+                    <option value="all">All paid statuses</option>
+                    <option value="paid">Paid</option>
+                    <option value="unpaid">Unpaid</option>
+                  </select>
                 </div>
-              ))}
+                <div className="overflow-auto">
+                  <table className="min-w-full border-collapse text-sm">
+                    <thead>
+                      <tr className="border-b bg-slate-100">
+                        <th className="p-2 text-left">Employee</th>
+                        <th className="p-2 text-left">Department</th>
+                        <th className="p-2 text-left">Start</th>
+                        <th className="p-2 text-left">End</th>
+                        <th className="p-2 text-center">Days</th>
+                        <th className="p-2 text-left">Type</th>
+                        <th className="p-2 text-left">Paid</th>
+                        <th className="p-2 text-left">Notes</th>
+                        <th className="p-2 text-center">Actions</th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {employees
+                        .filter((employee) => {
+                          const matchesSearch = employeeFullName(employee)
+                            .toLowerCase()
+                            .includes(bookingSearch.toLowerCase());
+
+                          const matchesDepartment =
+                            departmentFilter === "all" ||
+                            employee.department_id === departmentFilter;
+
+                          return matchesSearch && matchesDepartment;
+
+                        })
+                        .flatMap((employee) =>
+                          employee.holidays
+                            .filter((holiday) => {
+                              const today = new Date();
+                              const holidayStart = fromISO(holiday.start);
+                              const holidayEnd = fromISO(holiday.end);
+
+                              const matchesLeaveType =
+                                bookingLeaveTypeFilter === "all" ||
+                                holiday.leaveCategory === bookingLeaveTypeFilter;
+
+                              const matchesDateStatus =
+                                bookingDateStatusFilter === "all" ||
+                                (bookingDateStatusFilter === "current" &&
+                                  holidayStart <= today &&
+                                  holidayEnd >= today) ||
+                                (bookingDateStatusFilter === "future" &&
+                                  holidayStart > today) ||
+                                (bookingDateStatusFilter === "past" &&
+                                  holidayEnd < today);
+
+                              const matchesPaidStatus =
+                                bookingPaidStatusFilter === "all" ||
+                                holiday.paymentStatus === bookingPaidStatusFilter;
+
+                              return matchesLeaveType && matchesDateStatus && matchesPaidStatus;
+                            })
+                            .map((holiday) => (
+                              <tr key={holiday.id} className="border-b">
+                                <td className="p-2">
+                                  {employeeFullName(employee)}
+                                </td>
+
+                                <td className="p-2">
+                                  {departmentName(employee.department_id)}
+                                </td>
+
+                                <td className="p-2">
+                                  {holiday.start}
+                                </td>
+
+                                <td className="p-2">
+                                  {holiday.end}
+                                </td>
+
+                                <td className="p-2 text-center">
+                                  {bookingTotalWorkingDays(
+                                    holiday,
+                                    bankHolidayMap
+                                  )}
+                                </td>
+
+                                <td className="p-2">
+                                  {bookingTypeLabel(holiday)}
+                                </td>
+
+                                <td className="p-2">
+                                  {paymentStatusLabel(holiday)}
+                                </td>
+
+                                <td className="p-2">
+                                  {holiday.notes || "-"}
+                                </td>
+
+                                <td className="p-2 text-center">
+                                  <div className="flex justify-center gap-2">
+                                    <Button
+                                      size="sm"
+                                      onClick={() => startEditBooking(employee, holiday)}
+                                    >
+                                      Edit
+                                    </Button>
+
+                                    <Button
+                                      size="sm"
+                                      variant="danger"
+                                      onClick={() =>
+                                        deleteHoliday(employee.id, holiday.id)
+                                      }
+                                    >
+                                      Delete
+                                    </Button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))
+                        )}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+        {activeView === "planner" && (
+          <div className="space-y-4">
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-5">
+              <Card>
+                <CardContent className="p-4">
+                  <p className="text-xs text-slate-500">Employees</p>
+                  <p className="text-2xl font-bold">{totalEmployees}</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <p className="text-xs text-slate-500">Currently on Leave</p>
+                  <p className="text-2xl font-bold">{currentlyOnLeave}</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <p className="text-xs text-slate-500">Currently Sick</p>
+                  <p className="text-2xl font-bold">{currentlyOnSickLeave}</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <p className="text-xs text-slate-500">Bookings Next 30 Days</p>
+                  <p className="text-2xl font-bold">{upcomingBookings30Days}</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardContent className="p-4">
+                  <p className="text-xs text-slate-500">Annual Leave Days Booked</p>
+                  <p className="text-2xl font-bold">{annualLeaveDaysBooked}</p>
+                </CardContent>
+              </Card>
             </div>
-          </CardContent>
-        </Card>
+
+            <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
+              <div className="flex flex-wrap items-center gap-3 border-b p-4 text-sm">
+                <label className="font-medium">Department</label>
+
+                <select
+                  value={departmentFilter}
+                  onChange={(e) => setDepartmentFilter(e.target.value)}
+                  className="rounded-xl border px-3 py-2 text-sm"
+                >
+                  <option value="all">All departments</option>
+
+                  {departments.map((department) => (
+                    <option key={department.id} value={department.id}>
+                      {department.name}
+                    </option>
+                  ))}
+                </select>
+
+                <label className="font-medium">Sort</label>
+
+                <select
+                  value={nameSort}
+                  onChange={(e) => setNameSort(e.target.value)}
+                  className="rounded-xl border px-3 py-2 text-sm"
+                >
+                  <option value="az">Name A → Z</option>
+                  <option value="za">Name Z → A</option>
+                </select>
+                <label className="flex items-center gap-2 font-medium">
+                  <input
+                    type="checkbox"
+                    checked={holidayWindowFilter}
+                    onChange={(e) => {
+                      setHolidayWindowFilter(e.target.checked);
+
+                      if (e.target.checked) {
+                        setTimeout(scrollCalendarToToday, 50);
+                      }
+                    }}
+                  />
+
+                  Upcoming holidays (30 days)
+                </label>
+              </div>
+              <div className="flex flex-wrap gap-3 border-b p-4 text-xs">
+                <span className="rounded-full bg-white px-3 py-1 ring-1 ring-slate-200">Weekday</span>
+                <span className="rounded-full bg-slate-200 px-3 py-1">Weekend</span>
+                <span className="rounded-full bg-amber-200 px-3 py-1">Irish bank holiday</span>
+                <span className="rounded-full bg-emerald-200 px-3 py-1">Annual Leave</span>
+                <span className="rounded-full bg-red-200 px-3 py-1">Certified Sick</span>
+                <span className="rounded-full bg-orange-200 px-3 py-1">Uncertified Sick</span>
+                <span className="rounded-full bg-purple-200 px-3 py-1">Compassionate / Bereavement</span>
+                <span className="rounded-full bg-indigo-200 px-3 py-1">Jury Service</span>
+                <span className="rounded-full bg-pink-200 px-3 py-1">Family Leave</span>
+                <span className="rounded-full bg-sky-200 px-3 py-1">Other Leave</span>
+              </div>
+
+              <div id="calendar-scroll-container" className="overflow-auto" ref={(el) => {
+                if (el && !el.dataset.scrolled && !holidayWindowFilter) {
+                  const approxColumnWidth = 34;
+                  const staticColumnsWidth = 490;
+                  el.scrollLeft = staticColumnsWidth + (currentMonth * 31 * approxColumnWidth);
+                  el.dataset.scrolled = "true";
+                }
+              }}>
+                <table className="min-w-full border-collapse text-xs">
+                  <thead className="sticky top-0 z-10 bg-white shadow-sm">
+                    <tr>
+                      <th className="sticky left-0 z-20 min-w-[220px] bg-white p-2 text-left">Employee</th>
+                      <th className="min-w-[90px] p-2 text-center">Staff No.</th>
+                      <th className="min-w-[110px] p-2 text-center">Dept.</th>
+                      <th className="min-w-[70px] p-2 text-center">Ent.</th>
+                      <th className="min-w-[90px] p-2 text-center">Std Used</th>
+                      <th className="min-w-[70px] p-2 text-center">Except.</th>
+                      <th className="min-w-[80px] p-2 text-center">Remain</th>
+
+                      {yearDays.map((date) => (
+                        <th key={toISO(date)} className="min-w-[34px] border-l p-1 text-center font-medium">
+                          <div>{date.getDate()}</div>
+                          <div className="text-[10px] text-slate-500">{months[date.getMonth()]}</div>
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {visibleEmployees.map((employee) => {
+                      const standardUsed = usedDays(employee);
+                      const exceptions = exceptionDays(employee);
+                      const remaining = employee.entitlement - standardUsed;
+                      const employeeHolidayMap = holidayDayMap.get(employee.id) || new Map();
+
+                      return (
+                        <tr key={employee.id} className="border-t">
+                          <td className="sticky left-0 z-10 bg-white p-2 font-semibold">{employeeFullName(employee)}</td>
+                          <td className="p-2 text-center">{employee.staff_number || "-"}</td>
+                          <td className="p-2 text-center">{departmentName(employee.department_id)}</td>
+                          <td className="p-2 text-center">{employee.entitlement}</td>
+                          <td className="p-2 text-center">{standardUsed}</td>
+                          <td className="p-2 text-center">{exceptions}</td>
+                          <td className={`p-2 text-center font-semibold ${remaining < 0 ? "text-red-600" : "text-slate-900"}`}>{remaining}</td>
+
+                          {yearDays.map((date) => {
+                            const iso = toISO(date);
+                            const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+                            const bankName = bankHolidayMap.get(iso);
+                            const booking = employeeHolidayMap.get(iso);
+                            const isToday = iso === toISO(new Date());
+
+                            let cls = "bg-white";
+                            let mark = "";
+
+                            if (isWeekend) cls = "bg-slate-200";
+                            if (bankName) { cls = "bg-amber-200"; mark = "BH"; }
+                            if (booking) {
+                              cls = leaveTypeColorClass(booking);
+                              mark = Number(booking.dayAmount) === 0.5 ? "½" : isStandardBooking(booking) ? "H" : "L";
+                            }
+
+                            return (
+                              <td
+                                key={iso}
+                                className={`h-8 border-l text-center ${isToday ? "bg-orange-100 font-bold" : cls}`}
+                                title={`${employeeFullName(employee)} | ${iso}`}
+                              >
+                                {mark}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+
+        {activeView === "planner" && (
+          <Card>
+            <CardContent className="p-4">
+              <h2 className="mb-2 font-semibold">Irish bank holidays included for {year}</h2>
+              <div className="grid gap-2 text-sm md:grid-cols-2 lg:grid-cols-3">
+                {[...bankHolidayMap.entries()].sort().map(([date, name]) => (
+                  <div key={date} className="rounded-xl bg-amber-100 px-3 py-2">
+                    <span className="font-medium">{date}</span> — {name}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>
