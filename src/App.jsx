@@ -1,6 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { supabase } from "./supabase";
-import * as XLSX from "xlsx";
 
 function Button({ children, onClick, type = "button", variant = "primary", size = "md", className = "", disabled = false }) {
   const base = "inline-flex items-center justify-center gap-1 rounded-xl font-medium transition disabled:cursor-not-allowed disabled:opacity-50";
