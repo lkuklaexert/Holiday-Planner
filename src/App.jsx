@@ -471,9 +471,10 @@ const visibleEmployees = useMemo(() => {
 
   async function loadEmployees() {
     const { data, error } = await supabase
-      .from("employees")
-      .select("*")
-      .order("last_name", { ascending: true });
+    .from("employees")
+    .select("*")
+    .eq("active", true)
+    .order("last_name", { ascending: true });
 
     if (error) {
       console.error("Employees load error:", error);
@@ -626,6 +627,20 @@ exceptionType: h.exception_type,
     setNewLastName("");
     setNewStaffNumber("");
     setNewEntitlement(25);
+    await loadEmployees();
+  }
+  async function deactivateEmployee(id) {
+    const { error } = await supabase
+      .from("employees")
+      .update({ active: false })
+      .eq("id", id);
+  
+    if (error) {
+      alert(error.message);
+      return;
+    }
+  
+    if (selectedEmployeeId === id) setSelectedEmployeeId("");
     await loadEmployees();
   }
 
@@ -1032,7 +1047,23 @@ const annualLeaveDaysBooked = employees.reduce((sum, employee) => {
                             </button>
                             <div className="mt-3 flex gap-2">
                               <Button size="sm" variant="outline" onClick={() => startEdit(employee)}><Icon label="pencil" />Edit</Button>
-                              <Button size="sm" variant="danger" onClick={() => deleteEmployee(employee.id)}><Icon label="trash" />Delete</Button>
+                              {isAdmin ? (
+  <Button
+    size="sm"
+    variant="danger"
+    onClick={() => deleteEmployee(employee.id)}
+  >
+    <Icon label="trash" />Delete
+  </Button>
+) : (
+  <Button
+    size="sm"
+    variant="danger"
+    onClick={() => deactivateEmployee(employee.id)}
+  >
+    Deactivate
+  </Button>
+)}
                             </div>
                           </>
                         )}
