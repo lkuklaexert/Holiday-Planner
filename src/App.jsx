@@ -225,6 +225,7 @@ const currentYear = new Date().getFullYear();
 const defaultCurrentDate = toISO(new Date());
 
 const [session, setSession] = useState(null);
+const [userRole, setUserRole] = useState("viewer");
 const [loginEmail, setLoginEmail] = useState("");
 const [loginPassword, setLoginPassword] = useState("");
 const [loginError, setLoginError] = useState("");
@@ -270,6 +271,7 @@ const [editEntitlement, setEditEntitlement] = useState(25);
   const bankHolidayMap = useMemo(() => getIrishBankHolidays(Number(year)), [year]);
   const yearDays = useMemo(() => getDaysInYear(Number(year)), [year]);
   const selectedEmployee = employees.find((e) => e.id === selectedEmployeeId) || employees[0];
+  const isAdmin = userRole === "admin";
 
 const visibleEmployees = useMemo(() => {
   return employees
@@ -325,6 +327,7 @@ const visibleEmployees = useMemo(() => {
 
   useEffect(() => {
     if (session) {
+      loadUserRole(session.user.id);
       loadDepartments();
       loadEmployees();
     }
@@ -404,6 +407,22 @@ const visibleEmployees = useMemo(() => {
 
     alert("Password updated successfully.");
     setLoginPassword("");
+  }
+
+  async function loadUserRole(userId) {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", userId)
+      .single();
+  
+    if (error) {
+      console.error("User role load error:", error);
+      setUserRole("viewer");
+      return;
+    }
+  
+    setUserRole(data?.role || "viewer");
   }
 
   async function loadDepartments() {
