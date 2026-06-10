@@ -276,6 +276,7 @@ export default function IrishHolidayPlanner() {
   const bankHolidayMap = useMemo(() => getIrishBankHolidays(Number(year)), [year]);
   const yearDays = useMemo(() => getDaysInYear(Number(year)), [year]);
   const selectedEmployee = employees.find((e) => e.id === selectedEmployeeId) || employees[0];
+  const editingEmployee = employees.find((employee) => employee.id === editingId);
   const isAdmin = userRole === "admin";
   const isManager = userRole === "manager";
   const canManagePeople = isAdmin || isManager;
@@ -1552,92 +1553,7 @@ export default function IrishHolidayPlanner() {
                               </td>
                             </tr>
 
-                            {editingId === employee.id && (
-                              <tr className="border-b bg-slate-50">
-                                <td colSpan={8} className="p-3">
-                                  {/* Inline edit form keeps the table layout compact while editing employee details */}
-                                  <div className="space-y-2 rounded-xl border bg-white p-3">
-                                    <div className="grid grid-cols-2 gap-2 md:grid-cols-5">
-                                      <input
-                                        value={editFirstName}
-                                        onChange={(e) => setEditFirstName(e.target.value)}
-                                        className="rounded-xl border px-3 py-2 text-sm"
-                                        placeholder="First name"
-                                      />
-
-                                      <input
-                                        value={editLastName}
-                                        onChange={(e) => setEditLastName(e.target.value)}
-                                        className="rounded-xl border px-3 py-2 text-sm"
-                                        placeholder="Last name"
-                                      />
-
-                                      <input
-                                        value={editStaffNumber}
-                                        onChange={(e) => setEditStaffNumber(e.target.value.replace(/\D/g, "").slice(0, 10))}
-                                        className="rounded-xl border px-3 py-2 text-sm"
-                                        placeholder="Staff number"
-                                      />
-
-                                      <input
-                                        type="number"
-                                        value={editEntitlement}
-                                        onChange={(e) => setEditEntitlement(e.target.value)}
-                                        className="rounded-xl border px-3 py-2 text-sm"
-                                        placeholder="Entitlement"
-                                      />
-
-                                      {/* Allow assigning an employee to one or more departments */}
-                                      <div className="rounded-xl border p-3">
-                                        <p className="mb-2 text-sm font-medium">
-                                          Departments
-                                        </p>
-
-                                        <div className="grid gap-2 md:grid-cols-2">
-                                          {departments.map((department) => (
-                                            <label
-                                              key={department.id}
-                                              className="flex items-center gap-2 text-sm"
-                                            >
-                                              <input
-                                                type="checkbox"
-                                                checked={editDepartmentIds.includes(department.id)}
-                                                onChange={(e) => {
-                                                  if (e.target.checked) {
-                                                    setEditDepartmentIds([
-                                                      ...editDepartmentIds,
-                                                      department.id,
-                                                    ]);
-                                                  } else {
-                                                    setEditDepartmentIds(
-                                                      editDepartmentIds.filter(
-                                                        (id) => id !== department.id
-                                                      )
-                                                    );
-                                                  }
-                                                }}
-                                              />
-
-                                              {department.name}
-                                            </label>
-                                          ))}
-                                        </div>
-                                      </div>
-                                    </div>
-
-                                    <div className="flex gap-2">
-                                      <Button size="sm" onClick={() => saveEdit(employee.id)}>
-                                        <Icon label="save" /> Save
-                                      </Button>
-
-                                      <Button size="sm" variant="outline" onClick={() => setEditingId(null)}>
-                                        <Icon label="close" /> Cancel
-                                      </Button>
-                                    </div>
-                                  </div>
-                                </td>
-                              </tr>
-                            )}
+                            
                           </React.Fragment>
                         );
                       })}
@@ -2146,6 +2062,94 @@ export default function IrishHolidayPlanner() {
             </div>
           </div>
         )}
+
+{editingEmployee && (
+  <div className="fixed inset-0 z-50 flex justify-end bg-black/30">
+    <div className="h-full w-full max-w-xl overflow-auto bg-white p-5 shadow-xl">
+      <div className="mb-4 flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-semibold">Edit Employee</h2>
+          <p className="text-sm text-slate-500">
+            {employeeFullName(editingEmployee)}
+          </p>
+        </div>
+
+        <Button variant="outline" onClick={() => setEditingId(null)}>
+          Close
+        </Button>
+      </div>
+
+      {/* Side panel provides more space for employee fields without expanding the table */}
+      <div className="space-y-3">
+        <input
+          value={editFirstName}
+          onChange={(e) => setEditFirstName(e.target.value)}
+          className="w-full rounded-xl border px-3 py-2 text-sm"
+          placeholder="First name"
+        />
+
+        <input
+          value={editLastName}
+          onChange={(e) => setEditLastName(e.target.value)}
+          className="w-full rounded-xl border px-3 py-2 text-sm"
+          placeholder="Last name"
+        />
+
+        <input
+          value={editStaffNumber}
+          onChange={(e) =>
+            setEditStaffNumber(e.target.value.replace(/\D/g, "").slice(0, 10))
+          }
+          className="w-full rounded-xl border px-3 py-2 text-sm"
+          placeholder="Staff number"
+        />
+
+        <input
+          type="number"
+          value={editEntitlement}
+          onChange={(e) => setEditEntitlement(e.target.value)}
+          className="w-full rounded-xl border px-3 py-2 text-sm"
+          placeholder="Entitlement"
+        />
+
+        <div className="rounded-xl border p-3">
+          <p className="mb-2 text-sm font-medium">Departments</p>
+
+          <div className="grid gap-2 md:grid-cols-2">
+            {departments.map((department) => (
+              <label key={department.id} className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={editDepartmentIds.includes(department.id)}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setEditDepartmentIds([...editDepartmentIds, department.id]);
+                    } else {
+                      setEditDepartmentIds(
+                        editDepartmentIds.filter((id) => id !== department.id)
+                      );
+                    }
+                  }}
+                />
+                {department.name}
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex gap-2 pt-2">
+          <Button onClick={() => saveEdit(editingEmployee.id)}>
+            Save Changes
+          </Button>
+
+          <Button variant="outline" onClick={() => setEditingId(null)}>
+            Cancel
+          </Button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
 
 
         {activeView === "planner" && (
