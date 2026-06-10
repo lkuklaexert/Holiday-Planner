@@ -232,6 +232,7 @@ export default function IrishHolidayPlanner() {
   const [loginError, setLoginError] = useState("");
   const [employeeError, setEmployeeError] = useState("");
   const [employeeSearch, setEmployeeSearch] = useState("");
+  const [employeeImportSummary, setEmployeeImportSummary] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [holidayWindowFilter, setHolidayWindowFilter] = useState(false);
   const [nameSort, setNameSort] = useState("az");
@@ -607,6 +608,121 @@ export default function IrishHolidayPlanner() {
     }
 
     await loadDepartments();
+  }
+
+  async function importEmployeesFromExcel(event) {
+    // Import employees from a controlled Excel template while preserving existing records
+    if (!canManagePeople) return;
+  
+    const file = event.target.files?.[0];
+    if (!file) return;
+  
+    setEmployeeImportSummary("");
+  
+    const workbook = new ExcelJS.Workbook();
+    const buffer = await file.arrayBuffer();
+  
+    await workbook.xlsx.load(buffer);
+  
+    const worksheet = workbook.worksheets[0];
+  
+    if (!worksheet) {
+      setEmployeeImportSummary("Import failed: no worksheet found.");
+      return;
+    }
+  
+    const headerRow = worksheet.getRow(1);
+    const headers = {};
+  
+    headerRow.eachCell((cell, colNumber) => {
+      headers[String(cell.text).trim().toLowerCase()] = colNumber;
+    });
+  
+    const requiredHeaders = ["first name", "last name", "staff number", "department"];
+  
+    const missingHeaders = requiredHeaders.filter((header) => !headers[header]);
+  
+    if (missingHeaders.length > 0) {
+      setEmployeeImportSummary(`Import failed: missing columns - ${missingHeaders.join(", ")}`);
+      return;
+    }
+  
+    const existingStaffNumbers = new Set(
+      employees.map((employee) => String(employee.staff_number || "").trim()).filter(Boolean)
+    );
+  
+    const fileStaffNumbers = new Set();
+  
+    const departmentByName = new Map(
+      departments.map((department) => [
+        department.name.trim().toLowerCase(),
+        department.id,
+      ])
+    );
+  
+    const rowsToInsert = [];
+    let skippedRows = 0;
+  
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber === 1) return;
+  
+      const firstName = String(row.getCell(headers["first name"]).text || "").trim();
+      const lastName = String(row.getCell(headers["last name"]).text || "").trim();
+      const staffNumber = String(row.getCell(headers["staff number"]).text || "").trim();
+      const departmentNameFromFile = String(row.getCell(headers["department"]).text || "").trim();
+      const entitlementValue = headers["entitlement"]
+        ? Number(row.getCell(headers["entitlement"]).value || 25)
+        : 25;
+  
+      const departmentId = departmentByName.get(departmentNameFromFile.toLowerCase());
+  
+      const isInvalid =
+        !firstName ||
+        !lastName ||
+        !staffNumber ||
+        !departmentId ||
+        existingStaffNumbers.has(staffNumber) ||
+        fileStaffNumbers.has(staffNumber);
+  
+      if (isInvalid) {
+        skippedRows += 1;
+        return;
+      }
+  
+      fileStaffNumbers.add(staffNumber);
+  
+      rowsToInsert.push({
+        first_name: firstName,
+        last_name: lastName,
+        name: `${firstName} ${lastName}`.trim(),
+        staff_number: staffNumber,
+        department_id: departmentId,
+        entitlement: Number.isFinite(entitlementValue) ? entitlementValue : 25,
+        active: true,
+      });
+    });
+  
+    if (rowsToInsert.length === 0) {
+      setEmployeeImportSummary(`No employees imported. Skipped rows: ${skippedRows}.`);
+      event.target.value = "";
+      return;
+    }
+  
+    const { error } = await supabase.from("employees").insert(rowsToInsert);
+  
+    if (error) {
+      setEmployeeImportSummary(`Import failed: ${error.message}`);
+      event.target.value = "";
+      return;
+    }
+  
+    await loadEmployees();
+  
+    setEmployeeImportSummary(
+      `Imported ${rowsToInsert.length} employee(s). Skipped ${skippedRows} row(s).`
+    );
+  
+    event.target.value = "";
   }
 
   async function addEmployee() {
@@ -1070,6 +1186,25 @@ export default function IrishHolidayPlanner() {
                 )}
 
                 <Button onClick={addEmployee} className="w-full"><Icon label="plus" /> Add employee</Button>
+
+                <div className="rounded-xl border bg-slate-50 p-3">
+  <label className="mb-2 block text-sm font-medium">
+    Import employees from Excel
+  </label>
+
+  <input
+    type="file"
+    accept=".xlsx"
+    onChange={importEmployeesFromExcel}
+    className="w-full rounded-xl border bg-white px-3 py-2 text-sm"
+  />
+
+  {employeeImportSummary && (
+    <p className="mt-2 text-sm text-slate-600">
+      {employeeImportSummary}
+    </p>
+  )}
+</div>
                 <input
                   type="text"
                   placeholder="Search employees by name, staff number or department..."
