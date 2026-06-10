@@ -251,7 +251,7 @@ export default function IrishHolidayPlanner() {
   const [newFirstName, setNewFirstName] = useState("");
   const [newLastName, setNewLastName] = useState("");
   const [newStaffNumber, setNewStaffNumber] = useState("");
-  const [newDepartmentId, setNewDepartmentId] = useState("");
+  const [newDepartmentIds, setNewDepartmentIds] = useState([]);
   const [newEntitlement, setNewEntitlement] = useState(25);
 
   const [newDepartmentName, setNewDepartmentName] = useState("");
@@ -500,8 +500,8 @@ export default function IrishHolidayPlanner() {
 
     setDepartments(data || []);
 
-    if (!newDepartmentId && data?.length > 0) {
-      setNewDepartmentId(data[0].id);
+    if (newDepartmentIds.length === 0 && data?.length > 0) {
+      setNewDepartmentIds([data[0].id]);
     }
   }
 
@@ -837,7 +837,7 @@ export default function IrishHolidayPlanner() {
     const lastName = newLastName.trim();
     const staffNumber = newStaffNumber.trim();
 
-    if (!firstName || !lastName || !staffNumber || !newDepartmentId) {
+    if (!firstName || !lastName || !staffNumber || newDepartmentIds.length === 0) {
       setEmployeeError("First name, last name, staff number and department are required.");
       return;
     }
@@ -851,24 +851,50 @@ export default function IrishHolidayPlanner() {
 
     const fullName = `${firstName} ${lastName}`.trim();
 
-    const { error } = await supabase.from("employees").insert({
-      first_name: firstName,
-      last_name: lastName,
-      name: fullName,
-      staff_number: staffNumber || null,
-      department_id: newDepartmentId || null,
-      entitlement: Number(newEntitlement) || 0,
-      active: true,
-    });
+    const { data: insertedEmployees, error } = await supabase
+      .from("employees")
+      .insert({
+        first_name: firstName,
+        last_name: lastName,
+        name: fullName,
+        staff_number: staffNumber || null,
+
+        // Keep primary department for backwards compatibility during migration
+        department_id: newDepartmentIds[0] || null,
+
+        entitlement: Number(newEntitlement) || 0,
+        active: true,
+      })
+      .select("id");
 
     if (error) {
       alert(error.message);
       return;
     }
 
+    const insertedEmployeeId = insertedEmployees?.[0]?.id;
+
+    if (insertedEmployeeId) {
+      // Store all department assignments in the join table
+      const { error: departmentLinkError } = await supabase
+        .from("employee_departments")
+        .insert(
+          newDepartmentIds.map((departmentId) => ({
+            employee_id: insertedEmployeeId,
+            department_id: departmentId,
+          }))
+        );
+
+      if (departmentLinkError) {
+        alert(departmentLinkError.message);
+        return;
+      }
+    }
+
     setNewFirstName("");
     setNewLastName("");
     setNewStaffNumber("");
+    setNewDepartmentIds(departments[0]?.id ? [departments[0].id] : []);
     setNewEntitlement(25);
     await loadEmployees();
   }
@@ -1280,10 +1306,30 @@ export default function IrishHolidayPlanner() {
                   <input type="number" value={newEntitlement} onChange={(e) => setNewEntitlement(e.target.value)} className="rounded-xl border px-3 py-2 text-sm" />
                 </div>
 
-                <select value={newDepartmentId} onChange={(e) => setNewDepartmentId(e.target.value)} className="w-full rounded-xl border px-3 py-2 text-sm">
-                  <option value="">No department</option>
-                  {departments.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
-                </select>
+                <div className="rounded-xl border p-3">
+                  <p className="mb-2 text-sm font-medium">Departments</p>
+
+                  <div className="grid gap-2 md:grid-cols-3">
+                    {departments.map((department) => (
+                      <label key={department.id} className="flex items-center gap-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={newDepartmentIds.includes(department.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setNewDepartmentIds([...newDepartmentIds, department.id]);
+                            } else {
+                              setNewDepartmentIds(
+                                newDepartmentIds.filter((id) => id !== department.id)
+                              );
+                            }
+                          }}
+                        />
+                        {department.name}
+                      </label>
+                    ))}
+                  </div>
+                </div>
                 {employeeError && (
                   <p className="text-sm text-red-600">
                     {employeeError}
