@@ -423,6 +423,32 @@ export default function IrishHolidayPlanner() {
     return departmentIds.includes(departmentId);
   }
 
+  function DepartmentBadges({ employee }) {
+    // Display multiple departments as compact badges for easier scanning
+    const departmentIds = employee.departmentIds?.length
+      ? employee.departmentIds
+      : employee.department_id
+        ? [employee.department_id]
+        : [];
+
+    if (departmentIds.length === 0) {
+      return <span className="text-xs text-slate-500">No department</span>;
+    }
+
+    return (
+      <div className="flex flex-wrap gap-1">
+        {departmentIds.map((id) => (
+          <span
+            key={id}
+            className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700 ring-1 ring-slate-200"
+          >
+            {departmentName(id)}
+          </span>
+        ))}
+      </div>
+    );
+  }
+
   async function handleLogin(e) {
     e.preventDefault();
     setLoginError("");
@@ -1466,7 +1492,9 @@ export default function IrishHolidayPlanner() {
                                 </button>
                               </td>
 
-                              <td className="p-2">{employeeDepartmentNames(employee)}</td>
+                              <td className="p-2">
+                                <DepartmentBadges employee={employee} />
+                              </td>
                               <td className="p-2 text-center">{employee.entitlement}</td>
                               <td className="p-2 text-center">{standardUsed}</td>
                               <td className={`p-2 text-center font-semibold ${remaining < 0 ? "text-red-600" : ""}`}>
