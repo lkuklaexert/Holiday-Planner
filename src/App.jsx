@@ -269,6 +269,7 @@ export default function IrishHolidayPlanner() {
   const [editLastName, setEditLastName] = useState("");
   const [editStaffNumber, setEditStaffNumber] = useState("");
   const [editDepartmentId, setEditDepartmentId] = useState("");
+  const [editDepartmentIds, setEditDepartmentIds] = useState([]);
   const [editEntitlement, setEditEntitlement] = useState(25);
 
 
@@ -950,19 +951,44 @@ export default function IrishHolidayPlanner() {
   }
 
   function startEdit(employee) {
+    // Open employee edit mode with current details and department assignments
     setEditingId(employee.id);
     setEditFirstName(employee.first_name || "");
     setEditLastName(employee.last_name || "");
     setEditStaffNumber(employee.staff_number || "");
     setEditDepartmentId(employee.department_id || "");
+    setEditDepartmentIds(
+      employee.departmentIds?.length
+        ? employee.departmentIds
+        : employee.department_id
+          ? [employee.department_id]
+          : []
+    );
     setEditEntitlement(employee.entitlement);
   }
 
   async function saveEdit(id) {
-    // Admins and managers can update employee details
+    // Admins and managers can update employee details and department assignments
     if (!canManagePeople) return;
+
     if (editStaffNumber && !/^[0-9]{1,10}$/.test(editStaffNumber)) {
       alert("Staff number must be up to 10 digits only.");
+      return;
+    }
+
+    if (editDepartmentIds.length === 0) {
+      alert("Please select at least one department.");
+      return;
+    }
+
+    const duplicateStaffNumber = employees.some(
+      (employee) =>
+        employee.id !== id &&
+        String(employee.staff_number || "").trim() === editStaffNumber.trim()
+    );
+
+    if (duplicateStaffNumber) {
+      alert("Another employee already has this staff number.");
       return;
     }
 
@@ -976,13 +1002,40 @@ export default function IrishHolidayPlanner() {
         last_name: lastName,
         name: `${firstName} ${lastName}`.trim(),
         staff_number: editStaffNumber.trim() || null,
-        department_id: editDepartmentId || null,
+
+        // Keep primary department for backwards compatibility during migration
+        department_id: editDepartmentIds[0] || null,
+
         entitlement: Number(editEntitlement) || 0,
       })
       .eq("id", id);
 
     if (error) {
       alert(error.message);
+      return;
+    }
+
+    const { error: deleteDepartmentLinksError } = await supabase
+      .from("employee_departments")
+      .delete()
+      .eq("employee_id", id);
+
+    if (deleteDepartmentLinksError) {
+      alert(deleteDepartmentLinksError.message);
+      return;
+    }
+
+    const { error: insertDepartmentLinksError } = await supabase
+      .from("employee_departments")
+      .insert(
+        editDepartmentIds.map((departmentId) => ({
+          employee_id: id,
+          department_id: departmentId,
+        }))
+      );
+
+    if (insertDepartmentLinksError) {
+      alert(insertDepartmentLinksError.message);
       return;
     }
 
@@ -1490,18 +1543,42 @@ export default function IrishHolidayPlanner() {
                                         placeholder="Entitlement"
                                       />
 
-                                      <select
-                                        value={editDepartmentId}
-                                        onChange={(e) => setEditDepartmentId(e.target.value)}
-                                        className="rounded-xl border px-3 py-2 text-sm"
-                                      >
-                                        <option value="">No department</option>
-                                        {departments.map((d) => (
-                                          <option key={d.id} value={d.id}>
-                                            {d.name}
-                                          </option>
-                                        ))}
-                                      </select>
+                                      {/* Allow assigning an employee to one or more departments */}
+                                      <div className="rounded-xl border p-3">
+                                        <p className="mb-2 text-sm font-medium">
+                                          Departments
+                                        </p>
+
+                                        <div className="grid gap-2 md:grid-cols-2">
+                                          {departments.map((department) => (
+                                            <label
+                                              key={department.id}
+                                              className="flex items-center gap-2 text-sm"
+                                            >
+                                              <input
+                                                type="checkbox"
+                                                checked={editDepartmentIds.includes(department.id)}
+                                                onChange={(e) => {
+                                                  if (e.target.checked) {
+                                                    setEditDepartmentIds([
+                                                      ...editDepartmentIds,
+                                                      department.id,
+                                                    ]);
+                                                  } else {
+                                                    setEditDepartmentIds(
+                                                      editDepartmentIds.filter(
+                                                        (id) => id !== department.id
+                                                      )
+                                                    );
+                                                  }
+                                                }}
+                                              />
+
+                                              {department.name}
+                                            </label>
+                                          ))}
+                                        </div>
+                                      </div>
                                     </div>
 
                                     <div className="flex gap-2">
