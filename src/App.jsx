@@ -302,7 +302,7 @@ export default function IrishHolidayPlanner() {
 
   // Employee search is limited to active employees in the main employee list
   const filteredActiveEmployees = activeEmployees.filter((employee) => {
-    const searchText = `${employeeFullName(employee)} ${employee.staff_number || ""} ${departmentName(employee.department_id)}`.toLowerCase();
+    const searchText = `${employeeFullName(employee)} ${employee.staff_number || ""} ${employeeDepartmentNames(employee)}`.toLowerCase();
 
     return searchText.includes(employeeSearch.toLowerCase());
   });
@@ -314,7 +314,7 @@ export default function IrishHolidayPlanner() {
         // Department filter
         if (
           departmentFilter !== "all" &&
-          employee.department_id !== departmentFilter
+          !employeeHasDepartment(employee, departmentFilter)
         ) {
           return false;
         }
@@ -393,6 +393,32 @@ export default function IrishHolidayPlanner() {
 
   function departmentName(id) {
     return departments.find((d) => d.id === id)?.name || "No department";
+  }
+
+  function employeeDepartmentNames(employee) {
+    // Show all departments assigned to an employee
+    const departmentIds = employee.departmentIds?.length
+      ? employee.departmentIds
+      : employee.department_id
+        ? [employee.department_id]
+        : [];
+
+    if (departmentIds.length === 0) return "No department";
+
+    return departmentIds
+      .map((id) => departmentName(id))
+      .join(", ");
+  }
+
+  function employeeHasDepartment(employee, departmentId) {
+    // Department filters should match any department assigned to the employee
+    const departmentIds = employee.departmentIds?.length
+      ? employee.departmentIds
+      : employee.department_id
+        ? [employee.department_id]
+        : [];
+
+    return departmentIds.includes(departmentId);
   }
 
   async function handleLogin(e) {
@@ -501,9 +527,22 @@ export default function IrishHolidayPlanner() {
 
         if (holidayError) console.error("Holiday load error:", holidayError);
 
+        const { data: employeeDepartments, error: employeeDepartmentsError } = await supabase
+          .from("employee_departments")
+          .select("department_id")
+          .eq("employee_id", employee.id);
+
+        if (employeeDepartmentsError) {
+          console.error("Employee departments load error:", employeeDepartmentsError);
+        }
+
         return {
           ...employee,
           active: employee.active !== false,
+
+          // Employees can belong to multiple departments
+          departmentIds: (employeeDepartments || []).map((item) => item.department_id),
+
           holidays: (holidays || []).map((h) => ({
             id: h.id,
             start: h.start_date,
@@ -1019,7 +1058,7 @@ export default function IrishHolidayPlanner() {
         worksheet.addRow({
           employee: employeeFullName(employee),
           staffNumber: employee.staff_number || "",
-          department: departmentName(employee.department_id),
+          department: employeeDepartmentNames(employee),
           leaveType: bookingTypeLabel(holiday),
           start: holiday.start,
           end: holiday.end,
@@ -1320,7 +1359,7 @@ export default function IrishHolidayPlanner() {
                                 </button>
                               </td>
 
-                              <td className="p-2">{departmentName(employee.department_id)}</td>
+                              <td className="p-2">{employeeDepartmentNames(employee)}</td>
                               <td className="p-2 text-center">{employee.entitlement}</td>
                               <td className="p-2 text-center">{standardUsed}</td>
                               <td className={`p-2 text-center font-semibold ${remaining < 0 ? "text-red-600" : ""}`}>
@@ -1440,7 +1479,7 @@ export default function IrishHolidayPlanner() {
                         <div>
                           <p className="font-semibold text-slate-700">{employeeFullName(employee)}</p>
                           <p className="text-xs text-slate-500">
-                            Staff No: {employee.staff_number || "-"} | Dept: {departmentName(employee.department_id)}
+                            Staff No: {employee.staff_number || "-"} | Dept: {employeeDepartmentNames(employee)}
                           </p>
                         </div>
 
@@ -1656,7 +1695,7 @@ export default function IrishHolidayPlanner() {
 
                           const matchesDepartment =
                             departmentFilter === "all" ||
-                            employee.department_id === departmentFilter;
+                            employeeHasDepartment(employee, departmentFilter)
 
                           return matchesSearch && matchesDepartment;
 
@@ -1695,7 +1734,7 @@ export default function IrishHolidayPlanner() {
                                 </td>
 
                                 <td className="p-2">
-                                  {departmentName(employee.department_id)}
+                                  {employeeDepartmentNames(employee)}
                                 </td>
 
                                 <td className="p-2">
@@ -1890,7 +1929,7 @@ export default function IrishHolidayPlanner() {
                         <tr key={employee.id} className="border-t">
                           <td className="sticky left-0 z-10 bg-white p-2 font-semibold">{employeeFullName(employee)}</td>
                           <td className="p-2 text-center">{employee.staff_number || "-"}</td>
-                          <td className="p-2 text-center">{departmentName(employee.department_id)}</td>
+                          <td className="p-2 text-center">{employeeDepartmentNames(employee)}</td>
                           <td className="p-2 text-center">{employee.entitlement}</td>
                           <td className="p-2 text-center">{standardUsed}</td>
                           <td className="p-2 text-center">{exceptions}</td>
