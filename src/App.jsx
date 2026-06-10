@@ -423,6 +423,22 @@ export default function IrishHolidayPlanner() {
     return departmentIds.includes(departmentId);
   }
 
+  function departmentBadgeClass(departmentNameValue) {
+    // Keep department colours consistent across the employee table
+    const name = departmentNameValue.toLowerCase();
+
+    if (name.includes("admin")) return "bg-purple-100 text-purple-800 ring-purple-200";
+    if (name.includes("management")) return "bg-indigo-100 text-indigo-800 ring-indigo-200";
+    if (name.includes("logistics")) return "bg-blue-100 text-blue-800 ring-blue-200";
+    if (name.includes("goods")) return "bg-emerald-100 text-emerald-800 ring-emerald-200";
+    if (name.includes("returns")) return "bg-orange-100 text-orange-800 ring-orange-200";
+    if (name.includes("stock")) return "bg-amber-100 text-amber-800 ring-amber-200";
+    if (name.includes("dispatch")) return "bg-cyan-100 text-cyan-800 ring-cyan-200";
+    if (name.includes("eir")) return "bg-pink-100 text-pink-800 ring-pink-200";
+
+    return "bg-slate-100 text-slate-700 ring-slate-200";
+  }
+
   function DepartmentBadges({ employee }) {
     // Display multiple departments as compact badges for easier scanning
     const departmentIds = employee.departmentIds?.length
@@ -440,7 +456,7 @@ export default function IrishHolidayPlanner() {
         {departmentIds.map((id) => (
           <span
             key={id}
-            className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700 ring-1 ring-slate-200"
+            className={`rounded-full px-2 py-1 text-xs font-medium ring-1 ${departmentBadgeClass(departmentName(id))}`}
           >
             {departmentName(id)}
           </span>
@@ -1460,11 +1476,11 @@ export default function IrishHolidayPlanner() {
                       <tr className="border-b bg-slate-100">
                         <th className="p-2 text-left">Employee</th>
                         <th className="p-2 text-left">Department</th>
-                        <th className="p-2 text-center">Ent.</th>
-                        <th className="p-2 text-center">Used</th>
-                        <th className="p-2 text-center">Remain</th>
-                        <th className="p-2 text-center">Exceptions</th>
-                        <th className="p-2 text-center">Sick</th>
+                        <th className="w-16 p-2 text-center">Ent.</th>
+                        <th className="w-16 p-2 text-center">Used</th>
+                        <th className="w-16 p-2 text-center">Remain</th>
+                        <th className="w-20 p-2 text-center">Exceptions</th>
+                        <th className="w-16 p-2 text-center">Sick</th>
                         <th className="p-2 text-center">Actions</th>
                       </tr>
                     </thead>
@@ -1495,13 +1511,13 @@ export default function IrishHolidayPlanner() {
                               <td className="p-2">
                                 <DepartmentBadges employee={employee} />
                               </td>
-                              <td className="p-2 text-center">{employee.entitlement}</td>
-                              <td className="p-2 text-center">{standardUsed}</td>
-                              <td className={`p-2 text-center font-semibold ${remaining < 0 ? "text-red-600" : ""}`}>
+                              <td className="w-16 p-2 text-center">{employee.entitlement}</td>
+                              <td className="w-16 p-2 text-center">{standardUsed}</td>
+                              <td className={`w-16 p-2 text-center font-semibold ${remaining < 0 ? "text-red-600" : ""}`}>
                                 {remaining}
                               </td>
-                              <td className="p-2 text-center">{exceptions}</td>
-                              <td className="p-2 text-center">{sickDays}</td>
+                              <td className="w-20 p-2 text-center">{exceptions}</td>
+                              <td className="w-16 p-2 text-center">{sickDays}</td>
 
                               <td className="p-2 text-center">
                                 <div className="flex justify-center gap-2">
