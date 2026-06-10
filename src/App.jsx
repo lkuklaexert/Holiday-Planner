@@ -231,6 +231,7 @@ export default function IrishHolidayPlanner() {
   const [loginPassword, setLoginPassword] = useState("");
   const [loginError, setLoginError] = useState("");
   const [employeeError, setEmployeeError] = useState("");
+  const [employeeSuccess, setEmployeeSuccess] = useState("");
   const [employeeSearch, setEmployeeSearch] = useState("");
   const [employeeImportSummary, setEmployeeImportSummary] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("all");
@@ -843,6 +844,7 @@ export default function IrishHolidayPlanner() {
     }
 
     setEmployeeError("");
+    setEmployeeSuccess("");
 
     if (staffNumber && !/^[0-9]{1,10}$/.test(staffNumber)) {
       alert("Staff number must be up to 10 digits only.");
@@ -896,6 +898,7 @@ export default function IrishHolidayPlanner() {
     setNewStaffNumber("");
     setNewDepartmentIds(departments[0]?.id ? [departments[0].id] : []);
     setNewEntitlement(25);
+    setEmployeeSuccess(`${fullName} has been added successfully.`);
     await loadEmployees();
   }
   async function deactivateEmployee(id) {
@@ -1333,6 +1336,11 @@ export default function IrishHolidayPlanner() {
                 {employeeError && (
                   <p className="text-sm text-red-600">
                     {employeeError}
+                  </p>
+                )}
+                {employeeSuccess && (
+                  <p className="text-sm text-emerald-600">
+                    {employeeSuccess}
                   </p>
                 )}
 
