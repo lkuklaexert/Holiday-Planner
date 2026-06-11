@@ -862,11 +862,6 @@ export default function IrishHolidayPlanner() {
         return;
       }
 
-      if (!departmentId) {
-        skippedRows.push(`Row ${rowNumber}: department does not exist.`);
-        return;
-      }
-
       if (!Number.isFinite(entitlementValue) || entitlementValue < 0) {
         skippedRows.push(`Row ${rowNumber}: entitlement must be a valid number.`);
         return;
@@ -883,6 +878,8 @@ export default function IrishHolidayPlanner() {
         department_id: departmentIds[0],
         entitlement: entitlementValue,
         active: true,
+        // Used after employee insert to create employee_departments links
+        departmentIds,
       });
     });
 
@@ -896,12 +893,58 @@ export default function IrishHolidayPlanner() {
       return;
     }
 
-    const { error } = await supabase.from("employees").insert(rowsToInsert);
+    const employeeRowsToInsert = rowsToInsert.map(({ departmentIds, ...employee }) => employee);
+
+    const { data: insertedEmployees, error } = await supabase
+      .from("employees")
+      .insert(employeeRowsToInsert)
+      .select("id, staff_number");
 
     if (error) {
-      setEmployeeImportSummary(`Import failed: ${error.message}`);
+      setEmployeeImportResult({
+        imported: 0,
+        skipped: rowsToInsert.length + skippedRows.length,
+        errors: [`Import failed: ${error.message}`],
+      });
       event.target.value = "";
       return;
+    }
+
+    const insertedEmployeeByStaffNumber = new Map(
+      (insertedEmployees || []).map((employee) => [
+        String(employee.staff_number),
+        employee.id,
+      ])
+    );
+
+    const departmentLinks = rowsToInsert.flatMap((employee) => {
+      const employeeId = insertedEmployeeByStaffNumber.get(
+        String(employee.staff_number)
+      );
+
+      if (!employeeId) return [];
+
+      return employee.departmentIds.map((departmentId) => ({
+        employee_id: employeeId,
+        department_id: departmentId,
+      }));
+    });
+
+    if (departmentLinks.length > 0) {
+      // Create one department assignment row per imported department
+      const { error: departmentLinkError } = await supabase
+        .from("employee_departments")
+        .insert(departmentLinks);
+
+      if (departmentLinkError) {
+        setEmployeeImportResult({
+          imported: insertedEmployees?.length || 0,
+          skipped: skippedRows.length,
+          errors: [`Department link import failed: ${departmentLinkError.message}`],
+        });
+        event.target.value = "";
+        return;
+      }
     }
 
     await loadEmployees();
