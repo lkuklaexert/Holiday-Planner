@@ -1046,6 +1046,17 @@ export default function IrishHolidayPlanner() {
     await loadEmployees();
   }
 
+  function requestReactivateEmployee(employee) {
+    // Ask for confirmation before returning an employee to active views
+    setConfirmAction({
+      title: "Reactivate Employee",
+      message: `Are you sure you want to reactivate ${employeeFullName(employee)}? They will appear in active employee lists again.`,
+      confirmText: "Reactivate",
+      confirmVariant: "primary",
+      onConfirm: () => reactivateEmployee(employee.id),
+    });
+  }
+
   async function reactivateEmployee(id) {
     // Admins and managers can restore inactive employees when they return
     if (!canManagePeople) return;
@@ -1720,7 +1731,7 @@ export default function IrishHolidayPlanner() {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => reactivateEmployee(employee.id)}
+                            onClick={() => requestReactivateEmployee(employee)}
                           >
                             Reactivate
                           </Button>
@@ -2205,6 +2216,7 @@ export default function IrishHolidayPlanner() {
           title={confirmAction?.title || ""}
           message={confirmAction?.message || ""}
           confirmText={confirmAction?.confirmText || "Confirm"}
+          confirmVariant={confirmAction?.confirmVariant || "danger"}
           onCancel={() => setConfirmAction(null)}
           onConfirm={() => {
             confirmAction?.onConfirm();
