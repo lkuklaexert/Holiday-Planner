@@ -4,6 +4,7 @@ import Button from "./components/common/Button";
 import { Card, CardContent } from "./components/common/Card";
 import Icon from "./components/common/Icon";
 import ConfirmDialog from "./components/common/ConfirmDialog";
+import Toast from "./components/common/Toast";
 import ExcelJS from "exceljs";
 
 const LEAVE_CATEGORIES = {
@@ -228,6 +229,7 @@ export default function IrishHolidayPlanner() {
   const [bookingPaidStatusFilter, setBookingPaidStatusFilter] = useState("all");
   const [editingBooking, setEditingBooking] = useState(null);
   const [confirmAction, setConfirmAction] = useState(null);
+  const [toast, setToast] = useState(null);
 
   const [year, setYear] = useState(currentYear);
   const [employees, setEmployees] = useState([]);
@@ -267,6 +269,16 @@ export default function IrishHolidayPlanner() {
   const canManagePeople = isAdmin || isManager;
   const canManageBookings = isAdmin || isManager;
   const canManageDepartments = isAdmin;
+
+  function showToast(message, type = "info") {
+    // A single notification helper keeps user feedback consistent across features.
+    setToast({ message, type });
+  
+    window.setTimeout(() => {
+      setToast(null);
+    }, 4000);
+  }
+
   // Keep users on an allowed page if their role changes after login
   useEffect(() => {
     if (activeView === "employees" && !canManagePeople) {
@@ -2242,6 +2254,8 @@ export default function IrishHolidayPlanner() {
             setConfirmAction(null);
           }}
         />
+
+        <Toast toast={toast} onClose={() => setToast(null)} />
 
         {editingEmployee && (
           <div className="fixed inset-0 z-50 flex justify-end bg-black/30">
