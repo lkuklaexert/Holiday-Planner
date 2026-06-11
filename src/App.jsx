@@ -707,11 +707,12 @@ export default function IrishHolidayPlanner() {
       { header: "Entitlement", key: "entitlement", width: 15 },
     ];
 
+    // Example row showing how to assign multiple departments
     worksheet.addRow({
       firstName: "John",
       lastName: "Smith",
       staffNumber: "1001",
-      department: departments[0]?.name || "Example Department",
+      department: "Logistics, Returns",
       entitlement: 25,
     });
 
@@ -801,13 +802,38 @@ export default function IrishHolidayPlanner() {
       const firstName = String(row.getCell(headers["first name"]).text || "").trim();
       const lastName = String(row.getCell(headers["last name"]).text || "").trim();
       const staffNumber = String(row.getCell(headers["staff number"]).text || "").trim();
-      const departmentNameFromFile = String(row.getCell(headers["department"]).text || "").trim();
+      // Split department names entered as comma-separated values
+      const departmentNames = String(
+        row.getCell(headers["department"]).text || ""
+      )
+        .split(",")
+        .map((department) => department.trim())
+        .filter(Boolean);
       const entitlementRaw = String(row.getCell(headers["entitlement"]).text || "").trim();
       const entitlementValue = Number(entitlementRaw);
 
-      const departmentId = departmentByName.get(departmentNameFromFile.toLowerCase());
+      // Convert department names into department IDs
+      const departmentIds = [];
 
-      if (!firstName || !lastName || !staffNumber || !departmentNameFromFile || !entitlementRaw) {
+      for (const departmentName of departmentNames) {
+        const departmentId = departmentByName.get(
+          departmentName.toLowerCase()
+        );
+
+        if (!departmentId) {
+          skippedRows.push(
+            `Row ${rowNumber}: department "${departmentName}" does not exist.`
+          );
+
+          return;
+        }
+
+        if (!departmentIds.includes(departmentId)) {
+          departmentIds.push(departmentId);
+        }
+      }
+
+      if (!firstName || !lastName || !staffNumber || departmentNames.length === 0 || !entitlementRaw) {
         skippedRows.push(`Row ${rowNumber}: missing required field.`);
         return;
       }
@@ -844,7 +870,8 @@ export default function IrishHolidayPlanner() {
         last_name: lastName,
         name: `${firstName} ${lastName}`.trim(),
         staff_number: staffNumber,
-        department_id: departmentId,
+        // Store the first department on the employee during migration
+        department_id: departmentIds[0],
         entitlement: entitlementValue,
         active: true,
       });
@@ -1553,7 +1580,7 @@ export default function IrishHolidayPlanner() {
                               </td>
                             </tr>
 
-                            
+
                           </React.Fragment>
                         );
                       })}
@@ -2063,93 +2090,93 @@ export default function IrishHolidayPlanner() {
           </div>
         )}
 
-{editingEmployee && (
-  <div className="fixed inset-0 z-50 flex justify-end bg-black/30">
-    <div className="h-full w-full max-w-xl overflow-auto bg-white p-5 shadow-xl">
-      <div className="mb-4 flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-semibold">Edit Employee</h2>
-          <p className="text-sm text-slate-500">
-            {employeeFullName(editingEmployee)}
-          </p>
-        </div>
+        {editingEmployee && (
+          <div className="fixed inset-0 z-50 flex justify-end bg-black/30">
+            <div className="h-full w-full max-w-xl overflow-auto bg-white p-5 shadow-xl">
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold">Edit Employee</h2>
+                  <p className="text-sm text-slate-500">
+                    {employeeFullName(editingEmployee)}
+                  </p>
+                </div>
 
-        <Button variant="outline" onClick={() => setEditingId(null)}>
-          Close
-        </Button>
-      </div>
+                <Button variant="outline" onClick={() => setEditingId(null)}>
+                  Close
+                </Button>
+              </div>
 
-      {/* Side panel provides more space for employee fields without expanding the table */}
-      <div className="space-y-3">
-        <input
-          value={editFirstName}
-          onChange={(e) => setEditFirstName(e.target.value)}
-          className="w-full rounded-xl border px-3 py-2 text-sm"
-          placeholder="First name"
-        />
-
-        <input
-          value={editLastName}
-          onChange={(e) => setEditLastName(e.target.value)}
-          className="w-full rounded-xl border px-3 py-2 text-sm"
-          placeholder="Last name"
-        />
-
-        <input
-          value={editStaffNumber}
-          onChange={(e) =>
-            setEditStaffNumber(e.target.value.replace(/\D/g, "").slice(0, 10))
-          }
-          className="w-full rounded-xl border px-3 py-2 text-sm"
-          placeholder="Staff number"
-        />
-
-        <input
-          type="number"
-          value={editEntitlement}
-          onChange={(e) => setEditEntitlement(e.target.value)}
-          className="w-full rounded-xl border px-3 py-2 text-sm"
-          placeholder="Entitlement"
-        />
-
-        <div className="rounded-xl border p-3">
-          <p className="mb-2 text-sm font-medium">Departments</p>
-
-          <div className="grid gap-2 md:grid-cols-2">
-            {departments.map((department) => (
-              <label key={department.id} className="flex items-center gap-2 text-sm">
+              {/* Side panel provides more space for employee fields without expanding the table */}
+              <div className="space-y-3">
                 <input
-                  type="checkbox"
-                  checked={editDepartmentIds.includes(department.id)}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setEditDepartmentIds([...editDepartmentIds, department.id]);
-                    } else {
-                      setEditDepartmentIds(
-                        editDepartmentIds.filter((id) => id !== department.id)
-                      );
-                    }
-                  }}
+                  value={editFirstName}
+                  onChange={(e) => setEditFirstName(e.target.value)}
+                  className="w-full rounded-xl border px-3 py-2 text-sm"
+                  placeholder="First name"
                 />
-                {department.name}
-              </label>
-            ))}
+
+                <input
+                  value={editLastName}
+                  onChange={(e) => setEditLastName(e.target.value)}
+                  className="w-full rounded-xl border px-3 py-2 text-sm"
+                  placeholder="Last name"
+                />
+
+                <input
+                  value={editStaffNumber}
+                  onChange={(e) =>
+                    setEditStaffNumber(e.target.value.replace(/\D/g, "").slice(0, 10))
+                  }
+                  className="w-full rounded-xl border px-3 py-2 text-sm"
+                  placeholder="Staff number"
+                />
+
+                <input
+                  type="number"
+                  value={editEntitlement}
+                  onChange={(e) => setEditEntitlement(e.target.value)}
+                  className="w-full rounded-xl border px-3 py-2 text-sm"
+                  placeholder="Entitlement"
+                />
+
+                <div className="rounded-xl border p-3">
+                  <p className="mb-2 text-sm font-medium">Departments</p>
+
+                  <div className="grid gap-2 md:grid-cols-2">
+                    {departments.map((department) => (
+                      <label key={department.id} className="flex items-center gap-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={editDepartmentIds.includes(department.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setEditDepartmentIds([...editDepartmentIds, department.id]);
+                            } else {
+                              setEditDepartmentIds(
+                                editDepartmentIds.filter((id) => id !== department.id)
+                              );
+                            }
+                          }}
+                        />
+                        {department.name}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <Button onClick={() => saveEdit(editingEmployee.id)}>
+                    Save Changes
+                  </Button>
+
+                  <Button variant="outline" onClick={() => setEditingId(null)}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-
-        <div className="flex gap-2 pt-2">
-          <Button onClick={() => saveEdit(editingEmployee.id)}>
-            Save Changes
-          </Button>
-
-          <Button variant="outline" onClick={() => setEditingId(null)}>
-            Cancel
-          </Button>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
+        )}
 
 
         {activeView === "planner" && (
