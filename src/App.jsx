@@ -751,212 +751,222 @@ export default function IrishHolidayPlanner() {
       errors: [],
     });
 
-    const workbook = new ExcelJS.Workbook();
-    const buffer = await file.arrayBuffer();
+    try {
+      const workbook = new ExcelJS.Workbook();
+      const buffer = await file.arrayBuffer();
 
-    await workbook.xlsx.load(buffer);
+      await workbook.xlsx.load(buffer);
 
-    const worksheet = workbook.worksheets[0];
+      const worksheet = workbook.worksheets[0];
 
-    if (!worksheet) {
-      setEmployeeImportSummary("Import failed: no worksheet found.");
-      event.target.value = "";
-      return;
-    }
-
-    const headerRow = worksheet.getRow(1);
-    const headers = {};
-
-    headerRow.eachCell((cell, colNumber) => {
-      headers[String(cell.text).trim().toLowerCase()] = colNumber;
-    });
-
-    const requiredHeaders = [
-      "first name",
-      "last name",
-      "staff number",
-      "department",
-      "entitlement",
-    ];
-
-    const missingHeaders = requiredHeaders.filter((header) => !headers[header]);
-
-    if (missingHeaders.length > 0) {
-      setEmployeeImportSummary(`Import failed: missing columns - ${missingHeaders.join(", ")}.`);
-      event.target.value = "";
-      return;
-    }
-
-    const existingStaffNumbers = new Set(
-      employees
-        .map((employee) => String(employee.staff_number || "").trim())
-        .filter(Boolean)
-    );
-
-    const fileStaffNumbers = new Set();
-
-    const departmentByName = new Map(
-      departments.map((department) => [
-        department.name.trim().toLowerCase(),
-        department.id,
-      ])
-    );
-
-    const rowsToInsert = [];
-    const skippedRows = [];
-
-    worksheet.eachRow((row, rowNumber) => {
-      if (rowNumber === 1) return;
-
-      const firstName = String(row.getCell(headers["first name"]).text || "").trim();
-      const lastName = String(row.getCell(headers["last name"]).text || "").trim();
-      const staffNumber = String(row.getCell(headers["staff number"]).text || "").trim();
-      // Split department names entered as comma-separated values
-      const departmentNames = String(
-        row.getCell(headers["department"]).text || ""
-      )
-        .split(",")
-        .map((department) => department.trim())
-        .filter(Boolean);
-      const entitlementRaw = String(row.getCell(headers["entitlement"]).text || "").trim();
-      const entitlementValue = Number(entitlementRaw);
-
-      // Convert department names into department IDs
-      const departmentIds = [];
-
-      for (const departmentName of departmentNames) {
-        const departmentId = departmentByName.get(
-          departmentName.toLowerCase()
-        );
-
-        if (!departmentId) {
-          skippedRows.push(
-            `Row ${rowNumber}: department "${departmentName}" does not exist.`
-          );
-
-          return;
-        }
-
-        if (!departmentIds.includes(departmentId)) {
-          departmentIds.push(departmentId);
-        }
-      }
-
-      if (!firstName || !lastName || !staffNumber || departmentNames.length === 0 || !entitlementRaw) {
-        skippedRows.push(`Row ${rowNumber}: missing required field.`);
-        return;
-      }
-
-      if (!/^[0-9]{1,10}$/.test(staffNumber)) {
-        skippedRows.push(`Row ${rowNumber}: staff number must be up to 10 digits.`);
-        return;
-      }
-
-      if (existingStaffNumbers.has(staffNumber)) {
-        skippedRows.push(`Row ${rowNumber}: staff number already exists.`);
-        return;
-      }
-
-      if (fileStaffNumbers.has(staffNumber)) {
-        skippedRows.push(`Row ${rowNumber}: duplicate staff number in import file.`);
-        return;
-      }
-
-      if (!Number.isFinite(entitlementValue) || entitlementValue < 0) {
-        skippedRows.push(`Row ${rowNumber}: entitlement must be a valid number.`);
-        return;
-      }
-
-      fileStaffNumbers.add(staffNumber);
-
-      rowsToInsert.push({
-        first_name: firstName,
-        last_name: lastName,
-        name: `${firstName} ${lastName}`.trim(),
-        staff_number: staffNumber,
-        // Store the first department on the employee during migration
-        department_id: departmentIds[0],
-        entitlement: entitlementValue,
-        active: true,
-        // Used after employee insert to create employee_departments links
-        departmentIds,
-      });
-    });
-
-    if (rowsToInsert.length === 0) {
-      setEmployeeImportResult({
-        imported: 0,
-        skipped: skippedRows.length,
-        errors: skippedRows,
-      });
-      event.target.value = "";
-      return;
-    }
-
-    const employeeRowsToInsert = rowsToInsert.map(({ departmentIds, ...employee }) => employee);
-
-    const { data: insertedEmployees, error } = await supabase
-      .from("employees")
-      .insert(employeeRowsToInsert)
-      .select("id, staff_number");
-
-    if (error) {
-      setEmployeeImportResult({
-        imported: 0,
-        skipped: rowsToInsert.length + skippedRows.length,
-        errors: [`Import failed: ${error.message}`],
-      });
-      event.target.value = "";
-      return;
-    }
-
-    const insertedEmployeeByStaffNumber = new Map(
-      (insertedEmployees || []).map((employee) => [
-        String(employee.staff_number),
-        employee.id,
-      ])
-    );
-
-    const departmentLinks = rowsToInsert.flatMap((employee) => {
-      const employeeId = insertedEmployeeByStaffNumber.get(
-        String(employee.staff_number)
-      );
-
-      if (!employeeId) return [];
-
-      return employee.departmentIds.map((departmentId) => ({
-        employee_id: employeeId,
-        department_id: departmentId,
-      }));
-    });
-
-    if (departmentLinks.length > 0) {
-      // Create one department assignment row per imported department
-      const { error: departmentLinkError } = await supabase
-        .from("employee_departments")
-        .insert(departmentLinks);
-
-      if (departmentLinkError) {
+      if (!worksheet) {
         setEmployeeImportResult({
-          imported: insertedEmployees?.length || 0,
-          skipped: skippedRows.length,
-          errors: [`Department link import failed: ${departmentLinkError.message}`],
+          imported: 0,
+          skipped: 0,
+          errors: ["Import failed: no worksheet found."],
         });
         event.target.value = "";
         return;
       }
+
+      const headers = {};
+
+      worksheet.getRow(1).eachCell((cell, colNumber) => {
+        headers[String(cell.text).trim().toLowerCase()] = colNumber;
+      });
+
+      const requiredHeaders = [
+        "first name",
+        "last name",
+        "staff number",
+        "department",
+        "entitlement",
+      ];
+
+      const missingHeaders = requiredHeaders.filter((header) => !headers[header]);
+
+      if (missingHeaders.length > 0) {
+        setEmployeeImportResult({
+          imported: 0,
+          skipped: 0,
+          errors: [`Import failed: missing columns - ${missingHeaders.join(", ")}.`],
+        });
+        event.target.value = "";
+        return;
+      }
+
+      const existingStaffNumbers = new Set(
+        employees
+          .map((employee) => String(employee.staff_number || "").trim())
+          .filter(Boolean)
+      );
+
+      const fileStaffNumbers = new Set();
+
+      const departmentByName = new Map(
+        departments.map((department) => [
+          department.name.trim().toLowerCase(),
+          department.id,
+        ])
+      );
+
+      const rowsToInsert = [];
+      const skippedRows = [];
+
+      worksheet.eachRow((row, rowNumber) => {
+        if (rowNumber === 1) return;
+
+        const firstName = String(row.getCell(headers["first name"]).text || "").trim();
+        const lastName = String(row.getCell(headers["last name"]).text || "").trim();
+        const staffNumber = String(row.getCell(headers["staff number"]).text || "").trim();
+        const departmentCell = String(row.getCell(headers["department"]).text || "").trim();
+        const entitlementRaw = String(row.getCell(headers["entitlement"]).text || "").trim();
+        const entitlementValue = Number(entitlementRaw);
+
+        const departmentNames = departmentCell
+          .split(",")
+          .map((department) => department.trim())
+          .filter(Boolean);
+
+        if (!firstName || !lastName || !staffNumber || departmentNames.length === 0 || !entitlementRaw) {
+          skippedRows.push(`Row ${rowNumber}: missing required field.`);
+          return;
+        }
+
+        if (!/^[0-9]{1,10}$/.test(staffNumber)) {
+          skippedRows.push(`Row ${rowNumber}: staff number must be up to 10 digits.`);
+          return;
+        }
+
+        if (existingStaffNumbers.has(staffNumber)) {
+          skippedRows.push(`Row ${rowNumber}: staff number already exists.`);
+          return;
+        }
+
+        if (fileStaffNumbers.has(staffNumber)) {
+          skippedRows.push(`Row ${rowNumber}: duplicate staff number in import file.`);
+          return;
+        }
+
+        if (!Number.isFinite(entitlementValue) || entitlementValue < 0) {
+          skippedRows.push(`Row ${rowNumber}: entitlement must be a valid number.`);
+          return;
+        }
+
+        const departmentIds = [];
+
+        for (const departmentName of departmentNames) {
+          const departmentId = departmentByName.get(departmentName.toLowerCase());
+
+          if (!departmentId) {
+            skippedRows.push(`Row ${rowNumber}: department "${departmentName}" does not exist.`);
+            return;
+          }
+
+          if (!departmentIds.includes(departmentId)) {
+            departmentIds.push(departmentId);
+          }
+        }
+
+        fileStaffNumbers.add(staffNumber);
+
+        rowsToInsert.push({
+          first_name: firstName,
+          last_name: lastName,
+          name: `${firstName} ${lastName}`.trim(),
+          staff_number: staffNumber,
+
+          // Keep first department on employees table during migration
+          department_id: departmentIds[0],
+
+          entitlement: entitlementValue,
+          active: true,
+          departmentIds,
+        });
+      });
+
+      if (rowsToInsert.length === 0) {
+        setEmployeeImportResult({
+          imported: 0,
+          skipped: skippedRows.length,
+          errors: skippedRows,
+        });
+        event.target.value = "";
+        return;
+      }
+
+      const employeeRowsToInsert = rowsToInsert.map(({ departmentIds, ...employee }) => employee);
+
+      const { data: insertedEmployees, error } = await supabase
+        .from("employees")
+        .insert(employeeRowsToInsert)
+        .select("id, staff_number");
+
+      if (error) {
+        setEmployeeImportResult({
+          imported: 0,
+          skipped: rowsToInsert.length + skippedRows.length,
+          errors: [`Import failed: ${error.message}`],
+        });
+        event.target.value = "";
+        return;
+      }
+
+      const insertedEmployeeByStaffNumber = new Map(
+        (insertedEmployees || []).map((employee) => [
+          String(employee.staff_number),
+          employee.id,
+        ])
+      );
+
+      const departmentLinks = rowsToInsert.flatMap((employee) => {
+        const employeeId = insertedEmployeeByStaffNumber.get(String(employee.staff_number));
+
+        if (!employeeId) return [];
+
+        return employee.departmentIds.map((departmentId) => ({
+          employee_id: employeeId,
+          department_id: departmentId,
+        }));
+      });
+
+      if (departmentLinks.length > 0) {
+        // Create one department assignment row per imported department
+        const { error: departmentLinkError } = await supabase
+          .from("employee_departments")
+          .insert(departmentLinks);
+
+        if (departmentLinkError) {
+          setEmployeeImportResult({
+            imported: insertedEmployees?.length || 0,
+            skipped: skippedRows.length,
+            errors: [`Department link import failed: ${departmentLinkError.message}`],
+          });
+          event.target.value = "";
+          return;
+        }
+      }
+
+      await loadEmployees();
+
+      setEmployeeImportResult({
+        imported: insertedEmployees?.length || 0,
+        skipped: skippedRows.length,
+        errors: skippedRows,
+      });
+
+      event.target.value = "";
+    } catch (error) {
+      setEmployeeImportResult({
+        imported: 0,
+        skipped: 0,
+        errors: [`Import failed: ${error.message}`],
+      });
+
+      event.target.value = "";
     }
-
-    await loadEmployees();
-
-    setEmployeeImportResult({
-      imported: rowsToInsert.length,
-      skipped: skippedRows.length,
-      errors: skippedRows,
-    });
-
-    event.target.value = "";
   }
+
 
   async function addEmployee() {
     // Admins and managers can create employee records
