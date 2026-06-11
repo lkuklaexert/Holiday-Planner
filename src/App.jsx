@@ -233,7 +233,12 @@ export default function IrishHolidayPlanner() {
   const [employeeError, setEmployeeError] = useState("");
   const [employeeSuccess, setEmployeeSuccess] = useState("");
   const [employeeSearch, setEmployeeSearch] = useState("");
-  const [employeeImportSummary, setEmployeeImportSummary] = useState("");
+  // Stores the outcome of the latest employee import operation
+  const [employeeImportResult, setEmployeeImportResult] = useState({
+    imported: 0,
+    skipped: 0,
+    errors: [],
+  });
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [holidayWindowFilter, setHolidayWindowFilter] = useState(false);
   const [nameSort, setNameSort] = useState("az");
@@ -740,7 +745,11 @@ export default function IrishHolidayPlanner() {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    setEmployeeImportSummary("");
+    setEmployeeImportResult({
+      imported: 0,
+      skipped: 0,
+      errors: [],
+    });
 
     const workbook = new ExcelJS.Workbook();
     const buffer = await file.arrayBuffer();
@@ -878,9 +887,11 @@ export default function IrishHolidayPlanner() {
     });
 
     if (rowsToInsert.length === 0) {
-      setEmployeeImportSummary(
-        `No employees imported. ${skippedRows.length} row(s) skipped. ${skippedRows.slice(0, 5).join(" ")}`
-      );
+      setEmployeeImportResult({
+        imported: 0,
+        skipped: skippedRows.length,
+        errors: skippedRows,
+      });
       event.target.value = "";
       return;
     }
@@ -895,9 +906,11 @@ export default function IrishHolidayPlanner() {
 
     await loadEmployees();
 
-    setEmployeeImportSummary(
-      `Imported ${rowsToInsert.length} employee(s). Skipped ${skippedRows.length} row(s). ${skippedRows.slice(0, 5).join(" ")}`
-    );
+    setEmployeeImportResult({
+      imported: rowsToInsert.length,
+      skipped: skippedRows.length,
+      errors: skippedRows,
+    });
 
     event.target.value = "";
   }
@@ -1484,11 +1497,55 @@ export default function IrishHolidayPlanner() {
                     className="w-full rounded-xl border bg-white px-3 py-2 text-sm"
                   />
 
-                  {employeeImportSummary && (
-                    <p className="mt-2 text-sm text-slate-600">
-                      {employeeImportSummary}
-                    </p>
-                  )}
+                  {(employeeImportResult.imported > 0 ||
+                    employeeImportResult.skipped > 0) && (
+                      <div className="mt-3 rounded-xl border bg-white p-4 shadow-sm">
+                        <h3 className="mb-3 font-semibold">
+                          Employee Import Results
+                        </h3>
+
+                        <div className="mb-4 grid grid-cols-2 gap-3">
+                          <div className="rounded-lg bg-emerald-50 p-3">
+                            <div className="text-xs uppercase text-emerald-700">
+                              Imported
+                            </div>
+
+                            <div className="text-2xl font-bold text-emerald-700">
+                              {employeeImportResult.imported}
+                            </div>
+                          </div>
+
+                          <div className="rounded-lg bg-amber-50 p-3">
+                            <div className="text-xs uppercase text-amber-700">
+                              Skipped
+                            </div>
+
+                            <div className="text-2xl font-bold text-amber-700">
+                              {employeeImportResult.skipped}
+                            </div>
+                          </div>
+                        </div>
+
+                        {employeeImportResult.errors.length > 0 && (
+                          <>
+                            <h4 className="mb-2 font-medium text-red-600">
+                              Issues Found
+                            </h4>
+
+                            <div className="max-h-56 overflow-y-auto rounded-lg border bg-slate-50 p-3">
+                              {employeeImportResult.errors.map((error, index) => (
+                                <div
+                                  key={index}
+                                  className="mb-2 text-sm text-slate-700"
+                                >
+                                  • {error}
+                                </div>
+                              ))}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )}
                 </div>
                 <input
                   type="text"
