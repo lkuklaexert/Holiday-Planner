@@ -3,6 +3,7 @@ import { supabase } from "./supabase";
 import Button from "./components/common/Button";
 import { Card, CardContent } from "./components/common/Card";
 import Icon from "./components/common/Icon";
+import ConfirmDialog from "./components/common/ConfirmDialog";
 import ExcelJS from "exceljs";
 
 const LEAVE_CATEGORIES = {
@@ -226,6 +227,7 @@ export default function IrishHolidayPlanner() {
   const [bookingDateStatusFilter, setBookingDateStatusFilter] = useState("all");
   const [bookingPaidStatusFilter, setBookingPaidStatusFilter] = useState("all");
   const [editingBooking, setEditingBooking] = useState(null);
+  const [confirmAction, setConfirmAction] = useState(null);
 
   const [year, setYear] = useState(currentYear);
   const [employees, setEmployees] = useState([]);
@@ -1050,6 +1052,16 @@ export default function IrishHolidayPlanner() {
     await loadEmployees();
   }
 
+  function requestDeleteEmployee(employee) {
+    // Ask for confirmation before permanently deleting an employee
+    setConfirmAction({
+      title: "Delete Employee",
+      message: `Are you sure you want to permanently delete ${employeeFullName(employee)}? This cannot be undone.`,
+      confirmText: "Delete",
+      onConfirm: () => deleteEmployee(employee.id),
+    });
+  }
+
   async function deleteEmployee(id) {
     // Permanent deletion is restricted to admins
     if (!isAdmin) return;
@@ -1659,7 +1671,7 @@ export default function IrishHolidayPlanner() {
                                     <Button
                                       size="sm"
                                       variant="danger"
-                                      onClick={() => deleteEmployee(employee.id)}
+                                      onClick={() => requestDeleteEmployee(employee)}
                                     >
                                       <Icon label="trash" /> Delete
                                     </Button>
@@ -2177,6 +2189,17 @@ export default function IrishHolidayPlanner() {
             </div>
           </div>
         )}
+        <ConfirmDialog
+          open={Boolean(confirmAction)}
+          title={confirmAction?.title || ""}
+          message={confirmAction?.message || ""}
+          confirmText={confirmAction?.confirmText || "Confirm"}
+          onCancel={() => setConfirmAction(null)}
+          onConfirm={() => {
+            confirmAction?.onConfirm();
+            setConfirmAction(null);
+          }}
+        />
 
         {editingEmployee && (
           <div className="fixed inset-0 z-50 flex justify-end bg-black/30">
