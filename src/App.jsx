@@ -663,6 +663,16 @@ export default function IrishHolidayPlanner() {
     await loadDepartments();
   }
 
+  function requestDeleteDepartment(department) {
+    // Ask for confirmation before removing a department from active use
+    setConfirmAction({
+      title: "Remove Department",
+      message: `Are you sure you want to remove ${department.name}? Existing employee history will remain unchanged.`,
+      confirmText: "Remove",
+      onConfirm: () => deleteDepartment(department.id),
+    });
+  }
+
   async function deleteDepartment(id) {
     // Departments are soft deleted so historical employee records remain valid
     if (!isAdmin) return;
@@ -1759,7 +1769,7 @@ export default function IrishHolidayPlanner() {
                   {departments.map((d) => (
                     <div key={d.id} className="flex items-center justify-between rounded-xl border p-2 text-sm">
                       <span>{d.name}</span>
-                      <Button size="sm" variant="danger" onClick={() => deleteDepartment(d.id)}>Remove</Button>
+                      <Button size="sm" variant="danger" onClick={() => requestDeleteDepartment(d)}>Remove</Button>
                     </div>
                   ))}
                 </div>
