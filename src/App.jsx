@@ -1,15 +1,8 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { supabase } from "./supabase";
 import Button from "./components/common/Button";
+import { Card, CardContent } from "./components/common/Card";
 import ExcelJS from "exceljs";
-
-function Card({ children }) {
-  return <div className="rounded-2xl bg-white shadow-sm">{children}</div>;
-}
-
-function CardContent({ children, className = "" }) {
-  return <div className={className}>{children}</div>;
-}
 
 function Icon({ label }) {
   const symbols = { plus: "+", trash: "🗑", calendar: "📅", users: "👥", pencil: "✎", save: "✓", close: "×" };
