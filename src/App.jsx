@@ -2,12 +2,8 @@ import React, { useMemo, useState, useEffect } from "react";
 import { supabase } from "./supabase";
 import Button from "./components/common/Button";
 import { Card, CardContent } from "./components/common/Card";
+import Icon from "./components/common/Icon";
 import ExcelJS from "exceljs";
-
-function Icon({ label }) {
-  const symbols = { plus: "+", trash: "🗑", calendar: "📅", users: "👥", pencil: "✎", save: "✓", close: "×" };
-  return <span>{symbols[label] || "•"}</span>;
-}
 
 const LEAVE_CATEGORIES = {
   STANDARD: "standard_entitlement",
