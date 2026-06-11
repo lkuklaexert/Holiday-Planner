@@ -1276,6 +1276,17 @@ export default function IrishHolidayPlanner() {
 
     await loadEmployees();
   }
+
+  function requestDeleteHoliday(employee, holiday) {
+    // Reuse the shared confirmation flow so all destructive actions behave consistently.
+    setConfirmAction({
+      title: "Delete Booking",
+      message: `Are you sure you want to delete this ${bookingTypeLabel(holiday)} booking for ${employeeFullName(employee)} from ${holiday.start} to ${holiday.end}? This cannot be undone.`,
+      confirmText: "Delete",
+      onConfirm: () => deleteHoliday(employee.id, holiday.id),
+    });
+  }
+
   async function exportBookingsToExcel() {
     // Build an Excel workbook in the browser for booking reporting
     const workbook = new ExcelJS.Workbook();
@@ -2026,9 +2037,7 @@ export default function IrishHolidayPlanner() {
                                     <Button
                                       size="sm"
                                       variant="danger"
-                                      onClick={() =>
-                                        deleteHoliday(employee.id, holiday.id)
-                                      }
+                                      onClick={() => requestDeleteHoliday(employee, holiday)}
                                     >
                                       Delete
                                     </Button>
