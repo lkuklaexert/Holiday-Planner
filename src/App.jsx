@@ -1018,6 +1018,17 @@ export default function IrishHolidayPlanner() {
     setEmployeeSuccess(`${fullName} has been added successfully.`);
     await loadEmployees();
   }
+
+  function requestDeactivateEmployee(employee) {
+    // Ask for confirmation before hiding an employee from active views
+    setConfirmAction({
+      title: "Deactivate Employee",
+      message: `Are you sure you want to deactivate ${employeeFullName(employee)}? They will move to the inactive employees list.`,
+      confirmText: "Deactivate",
+      onConfirm: () => deactivateEmployee(employee.id),
+    });
+  }
+
   async function deactivateEmployee(id) {
     // Managers deactivate employees instead of deleting historical records
     if (!canManagePeople) return;
@@ -1661,7 +1672,7 @@ export default function IrishHolidayPlanner() {
                                   <Button
                                     size="sm"
                                     variant="danger"
-                                    onClick={() => deactivateEmployee(employee.id)}
+                                    onClick={() => requestDeactivateEmployee(employee)}
                                   >
                                     Deactivate
                                   </Button>
