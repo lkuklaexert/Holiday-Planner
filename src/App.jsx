@@ -1456,6 +1456,16 @@ export default function IrishHolidayPlanner() {
             <button type="button" onClick={handleResetPassword} className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-800">
               Forgot password
             </button>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() => showToast("Toast system is working correctly.", "success")}
+            >
+              Test toast
+            </Button>
+
+
           </div>
         </form>
       </div>
