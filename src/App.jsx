@@ -484,7 +484,7 @@ export default function IrishHolidayPlanner() {
       return;
     }
 
-    alert("Password reset email sent. Please check your inbox.");
+    showToast("Password reset email sent. Please check your inbox.", "success");
   }
 
   async function handleSetNewPassword(e) {
