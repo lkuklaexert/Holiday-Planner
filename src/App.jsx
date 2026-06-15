@@ -7,6 +7,7 @@ import ConfirmDialog from "./components/common/ConfirmDialog";
 import Toast from "./components/common/Toast";
 import { useToast } from "./components/common/ToastProvider";
 import ExcelJS from "exceljs";
+import { login, resetPassword, updatePassword } from "./features/auth/authService";
 
 const LEAVE_CATEGORIES = {
   STANDARD: "standard_entitlement",
@@ -458,49 +459,42 @@ export default function IrishHolidayPlanner() {
   async function handleLogin(e) {
     e.preventDefault();
     setLoginError("");
-
-    const { error } = await supabase.auth.signInWithPassword({
-      email: loginEmail,
-      password: loginPassword,
-    });
-
+  
+    const { error } = await login(loginEmail, loginPassword);
+  
     if (error) setLoginError(error.message);
   }
 
   async function handleResetPassword() {
     setLoginError("");
-
+  
     if (!loginEmail) {
       setLoginError("Please enter your email first.");
       return;
     }
-
-    const { error } = await supabase.auth.resetPasswordForEmail(loginEmail, {
-      redirectTo: window.location.origin,
-    });
-
+  
+    const { error } = await resetPassword(loginEmail);
+  
     if (error) {
       setLoginError(error.message);
       return;
     }
-
+  
     showToast("Password reset email sent. Please check your inbox.", "success");
   }
 
   async function handleSetNewPassword(e) {
     e.preventDefault();
     setLoginError("");
-
-    const { error } = await supabase.auth.updateUser({
-      password: loginPassword,
-    });
-
+  
+    const { error } = await updatePassword(loginPassword);
+  
     if (error) {
-      alert(error.message);
+      showToast(error.message, "error");
       return;
     }
-
-    alert("Password updated successfully.");
+  
+    showToast("Password updated successfully.", "success");
     setLoginPassword("");
   }
 
