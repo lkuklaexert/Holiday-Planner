@@ -8,6 +8,7 @@ import Toast from "./components/common/Toast";
 import { useToast } from "./components/common/ToastProvider";
 import ExcelJS from "exceljs";
 import { login, resetPassword, updatePassword } from "./features/auth/authService";
+import LoginForm from "./features/auth/LoginForm";
 
 const LEAVE_CATEGORIES = {
   STANDARD: "standard_entitlement",
@@ -459,41 +460,41 @@ export default function IrishHolidayPlanner() {
   async function handleLogin(e) {
     e.preventDefault();
     setLoginError("");
-  
+
     const { error } = await login(loginEmail, loginPassword);
-  
+
     if (error) setLoginError(error.message);
   }
 
   async function handleResetPassword() {
     setLoginError("");
-  
+
     if (!loginEmail) {
       setLoginError("Please enter your email first.");
       return;
     }
-  
+
     const { error } = await resetPassword(loginEmail);
-  
+
     if (error) {
       setLoginError(error.message);
       return;
     }
-  
+
     showToast("Password reset email sent. Please check your inbox.", "success");
   }
 
   async function handleSetNewPassword(e) {
     e.preventDefault();
     setLoginError("");
-  
+
     const { error } = await updatePassword(loginPassword);
-  
+
     if (error) {
       showToast(error.message, "error");
       return;
     }
-  
+
     showToast("Password updated successfully.", "success");
     setLoginPassword("");
   }
@@ -1436,32 +1437,17 @@ export default function IrishHolidayPlanner() {
   if (!session) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-100 p-4">
-        <form onSubmit={handleLogin} className="w-full max-w-md rounded-2xl bg-white p-6 shadow-lg">
-          <h1 className="mb-4 text-2xl font-bold text-center">Employee Holiday Planner</h1>
-
-          <div className="space-y-3">
-            <input type="email" placeholder="Email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} className="w-full rounded-xl border px-3 py-2 text-sm" required />
-            <input type="password" placeholder="Password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} className="w-full rounded-xl border px-3 py-2 text-sm" required />
-
-            {loginError && <p className="text-sm text-red-600">{loginError}</p>}
-
-            <button type="submit" className="w-full rounded-xl bg-slate-900 px-3 py-2 text-sm font-medium text-white">Log in</button>
-
-            <button type="button" onClick={handleResetPassword} className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-800">
-              Forgot password
-            </button>
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={() => showToast("Toast system is working correctly.", "success")}
-            >
-              Test toast
-            </Button>
-
-
-          </div>
-        </form>
+        <LoginForm
+          auth={{
+            email: loginEmail,
+            password: loginPassword,
+            error: loginError,
+            setEmail: setLoginEmail,
+            setPassword: setLoginPassword,
+            login: handleLogin,
+            resetPassword: handleResetPassword,
+          }}
+        />
       </div>
     );
   }

@@ -4,7 +4,7 @@ import Button from "../../components/common/Button";
  * Login form.
  *
  * Pure presentation component.
- * Authentication logic remains in the parent component.
+ * Authentication logic remains in App.jsx for now and is passed in through props.
  */
 export default function LoginForm({
   email,
@@ -35,11 +35,7 @@ export default function LoginForm({
         required
       />
 
-      {error && (
-        <p className="text-sm text-red-600">
-          {error}
-        </p>
-      )}
+      {error && <p className="text-sm text-red-600">{error}</p>}
 
       <Button type="submit" className="w-full">
         Log in
