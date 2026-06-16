@@ -660,6 +660,7 @@ export default function IrishHolidayPlanner() {
     }
 
     setNewDepartmentName("");
+    showToast(`Department "${name}" has been added successfully.`, "success");
     await loadDepartments();
   }
 
@@ -685,6 +686,13 @@ export default function IrishHolidayPlanner() {
       showToast(error.message, "error");
       return;
     }
+
+    const department = departments.find((item) => item.id === id);
+
+    showToast(
+      `Department "${department?.name || "Department"}" has been removed successfully.`,
+      "success"
+    );
 
     await loadDepartments();
   }
