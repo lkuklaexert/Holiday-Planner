@@ -11,6 +11,7 @@ import { login, resetPassword, updatePassword } from "./features/auth/authServic
 import LoginForm from "./features/auth/LoginForm";
 import AuthGate from "./app/AuthGate";
 import AuthPage from "./features/auth/AuthPage";
+import ChangePasswordForm from "./features/auth/ChangePasswordForm";
 
 const LEAVE_CATEGORIES = {
   STANDARD: "standard_entitlement",
@@ -1497,10 +1498,11 @@ export default function IrishHolidayPlanner() {
             <div className="flex flex-wrap items-center gap-2">
               <Button variant="outline" onClick={async () => await supabase.auth.signOut()}>Log out</Button>
 
-              <form onSubmit={handleSetNewPassword} className="flex items-center gap-2">
-                <input type="password" placeholder="New password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} className="rounded-xl border px-3 py-2 text-sm" required />
-                <button type="submit" className="rounded-xl bg-slate-900 px-3 py-2 text-sm font-medium text-white">Change Password</button>
-              </form>
+              <ChangePasswordForm
+                password={loginPassword}
+                setPassword={setLoginPassword}
+                onSubmit={handleSetNewPassword}
+              />
 
               <Icon label="calendar" />
               <label className="text-sm font-medium">Year</label>
