@@ -2237,88 +2237,186 @@ export default function IrishHolidayPlanner() {
 
           {editingEmployee && (
             <div className="fixed inset-0 z-50 flex justify-end bg-black/30">
-              <div className="h-full w-full max-w-xl overflow-auto bg-white p-5 shadow-xl">
-                <div className="mb-4 flex items-center justify-between">
-                  <div>
-                    <h2 className="text-lg font-semibold">Edit Employee</h2>
-                    <p className="text-sm text-slate-500">
-                      {employeeFullName(editingEmployee)}
-                    </p>
-                  </div>
+              <div className="h-full w-full max-w-2xl overflow-auto bg-white p-5 shadow-xl">
+                {(() => {
+                  const standardUsed = usedDays(editingEmployee);
+                  const exceptions = exceptionDays(editingEmployee);
+                  const remaining = Number(editingEmployee.entitlement || 0) - standardUsed;
+                  const sickDays =
+                    leaveTypeDays(editingEmployee, "sickness_certified", bankHolidayMap) +
+                    leaveTypeDays(editingEmployee, "sickness_uncertified", bankHolidayMap) +
+                    leaveTypeDays(editingEmployee, "statutory_sick_leave", bankHolidayMap);
 
-                  <Button variant="outline" onClick={() => setEditingId(null)}>
-                    Close
-                  </Button>
-                </div>
+                  return (
+                    <>
+                      <div className="mb-4 flex items-center justify-between">
+                        <div>
+                          <h2 className="text-lg font-semibold">Employee Profile</h2>
+                          <p className="text-sm text-slate-500">
+                            HR details, departments and leave balance.
+                          </p>
+                        </div>
 
-                {/* Side panel provides more space for employee fields without expanding the table */}
-                <div className="space-y-3">
-                  <input
-                    value={editFirstName}
-                    onChange={(e) => setEditFirstName(e.target.value)}
-                    className="w-full rounded-xl border px-3 py-2 text-sm"
-                    placeholder="First name"
-                  />
+                        <Button variant="outline" onClick={() => setEditingId(null)}>
+                          Close
+                        </Button>
+                      </div>
 
-                  <input
-                    value={editLastName}
-                    onChange={(e) => setEditLastName(e.target.value)}
-                    className="w-full rounded-xl border px-3 py-2 text-sm"
-                    placeholder="Last name"
-                  />
+                      {/* Profile summary keeps key HR information visible before editing employee details. */}
+                      <div className="mb-5 rounded-2xl border bg-slate-50 p-4">
+                        <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                          <div>
+                            <h3 className="text-xl font-bold">
+                              {employeeFullName(editingEmployee)}
+                            </h3>
 
-                  <input
-                    value={editStaffNumber}
-                    onChange={(e) =>
-                      setEditStaffNumber(e.target.value.replace(/\D/g, "").slice(0, 10))
-                    }
-                    className="w-full rounded-xl border px-3 py-2 text-sm"
-                    placeholder="Staff number"
-                  />
+                            <p className="text-sm text-slate-500">
+                              Staff No: {editingEmployee.staff_number || "-"}
+                            </p>
+                          </div>
 
-                  <input
-                    type="number"
-                    value={editEntitlement}
-                    onChange={(e) => setEditEntitlement(e.target.value)}
-                    className="w-full rounded-xl border px-3 py-2 text-sm"
-                    placeholder="Entitlement"
-                  />
+                          <span className="w-fit rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700">
+                            Active
+                          </span>
+                        </div>
 
-                  <div className="rounded-xl border p-3">
-                    <p className="mb-2 text-sm font-medium">Departments</p>
+                        <div className="mb-4">
+                          <p className="mb-2 text-xs font-medium uppercase text-slate-500">
+                            Departments
+                          </p>
 
-                    <div className="grid gap-2 md:grid-cols-2">
-                      {departments.map((department) => (
-                        <label key={department.id} className="flex items-center gap-2 text-sm">
+                          <DepartmentBadges employee={editingEmployee} />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+                          <div className="rounded-xl bg-white p-3 shadow-sm">
+                            <p className="text-xs text-slate-500">Entitlement</p>
+                            <p className="text-xl font-bold">
+                              {editingEmployee.entitlement}
+                            </p>
+                          </div>
+
+                          <div className="rounded-xl bg-white p-3 shadow-sm">
+                            <p className="text-xs text-slate-500">Used</p>
+                            <p className="text-xl font-bold">
+                              {standardUsed}
+                            </p>
+                          </div>
+
+                          <div className="rounded-xl bg-white p-3 shadow-sm">
+                            <p className="text-xs text-slate-500">Remaining</p>
+                            <p className={`text-xl font-bold ${remaining < 0 ? "text-red-600" : "text-emerald-700"}`}>
+                              {remaining}
+                            </p>
+                          </div>
+
+                          <div className="rounded-xl bg-white p-3 shadow-sm">
+                            <p className="text-xs text-slate-500">Exceptions</p>
+                            <p className="text-xl font-bold">
+                              {exceptions}
+                            </p>
+                          </div>
+
+                          <div className="rounded-xl bg-white p-3 shadow-sm">
+                            <p className="text-xs text-slate-500">Sick</p>
+                            <p className="text-xl font-bold">
+                              {sickDays}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* The edit form stays in the same panel so existing save behaviour remains unchanged. */}
+                      <div className="space-y-3">
+                        <div>
+                          <label className="mb-1 block text-xs font-medium text-slate-600">
+                            First name
+                          </label>
                           <input
-                            type="checkbox"
-                            checked={editDepartmentIds.includes(department.id)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setEditDepartmentIds([...editDepartmentIds, department.id]);
-                              } else {
-                                setEditDepartmentIds(
-                                  editDepartmentIds.filter((id) => id !== department.id)
-                                );
-                              }
-                            }}
+                            value={editFirstName}
+                            onChange={(e) => setEditFirstName(e.target.value)}
+                            className="w-full rounded-xl border px-3 py-2 text-sm"
+                            placeholder="First name"
                           />
-                          {department.name}
-                        </label>
-                      ))}
-                    </div>
-                  </div>
+                        </div>
 
-                  <div className="flex gap-2 pt-2">
-                    <Button onClick={() => saveEdit(editingEmployee.id)}>
-                      Save Changes
-                    </Button>
+                        <div>
+                          <label className="mb-1 block text-xs font-medium text-slate-600">
+                            Last name
+                          </label>
+                          <input
+                            value={editLastName}
+                            onChange={(e) => setEditLastName(e.target.value)}
+                            className="w-full rounded-xl border px-3 py-2 text-sm"
+                            placeholder="Last name"
+                          />
+                        </div>
 
-                    <Button variant="outline" onClick={() => setEditingId(null)}>
-                      Cancel
-                    </Button>
-                  </div>
-                </div>
+                        <div>
+                          <label className="mb-1 block text-xs font-medium text-slate-600">
+                            Staff number
+                          </label>
+                          <input
+                            value={editStaffNumber}
+                            onChange={(e) =>
+                              setEditStaffNumber(e.target.value.replace(/\D/g, "").slice(0, 10))
+                            }
+                            className="w-full rounded-xl border px-3 py-2 text-sm"
+                            placeholder="Staff number"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="mb-1 block text-xs font-medium text-slate-600">
+                            Entitlement
+                          </label>
+                          <input
+                            type="number"
+                            value={editEntitlement}
+                            onChange={(e) => setEditEntitlement(e.target.value)}
+                            className="w-full rounded-xl border px-3 py-2 text-sm"
+                            placeholder="Entitlement"
+                          />
+                        </div>
+
+                        <div className="rounded-xl border p-3">
+                          <p className="mb-2 text-sm font-medium">Departments</p>
+
+                          <div className="grid gap-2 md:grid-cols-2">
+                            {departments.map((department) => (
+                              <label key={department.id} className="flex items-center gap-2 text-sm">
+                                <input
+                                  type="checkbox"
+                                  checked={editDepartmentIds.includes(department.id)}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setEditDepartmentIds([...editDepartmentIds, department.id]);
+                                    } else {
+                                      setEditDepartmentIds(
+                                        editDepartmentIds.filter((id) => id !== department.id)
+                                      );
+                                    }
+                                  }}
+                                />
+                                {department.name}
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2 pt-2">
+                          <Button onClick={() => saveEdit(editingEmployee.id)}>
+                            Save Changes
+                          </Button>
+
+                          <Button variant="outline" onClick={() => setEditingId(null)}>
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             </div>
           )}
