@@ -655,7 +655,7 @@ export default function IrishHolidayPlanner() {
     const { error } = await supabase.from("departments").insert({ name });
 
     if (error) {
-      alert(error.message);
+      showToast(error.message, "error");
       return;
     }
 
@@ -682,7 +682,7 @@ export default function IrishHolidayPlanner() {
       .eq("id", id);
 
     if (error) {
-      alert(error.message);
+      showToast(error.message, "error");
       return;
     }
 
@@ -997,7 +997,7 @@ export default function IrishHolidayPlanner() {
       .select("id");
 
     if (error) {
-      alert(error.message);
+      showToast(error.message, "error");
       return;
     }
 
