@@ -1253,6 +1253,8 @@ export default function IrishHolidayPlanner() {
       return;
     }
 
+    showToast("Holiday booking added successfully.", "success");
+
     resetHolidayPickerToCurrentMonth();
     await loadEmployees();
   }
@@ -1279,6 +1281,8 @@ export default function IrishHolidayPlanner() {
       return;
     }
 
+    showToast("Holiday booking updated successfully.", "success");
+
     setEditingBooking(null);
 
     await loadEmployees();
@@ -1293,6 +1297,8 @@ export default function IrishHolidayPlanner() {
       showToast(error.message, "error");
       return;
     }
+
+    showToast("Holiday booking deleted successfully.", "success");
 
     await loadEmployees();
   }
