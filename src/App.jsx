@@ -2402,6 +2402,51 @@ export default function IrishHolidayPlanner() {
                           </div>
                         </div>
 
+                        {/* Leave history provides HR with a quick overview without leaving the employee profile. */}
+                        <div className="rounded-xl border">
+                          <div className="border-b bg-slate-50 px-4 py-3">
+                            <h3 className="font-semibold">Leave History</h3>
+                          </div>
+
+                          {editingEmployee.holidays.length === 0 ? (
+                            <div className="p-4 text-sm text-slate-500">
+                              No leave records found.
+                            </div>
+                          ) : (
+                            <div className="max-h-64 overflow-y-auto">
+                              {editingEmployee.holidays
+                                .slice()
+                                .sort((a, b) => b.start.localeCompare(a.start))
+                                .map((holiday) => (
+                                  <div
+                                    key={holiday.id}
+                                    className="border-b px-4 py-3 last:border-b-0"
+                                  >
+                                    <div className="flex items-center justify-between">
+                                      <span className="font-medium">
+                                        {bookingTypeLabel(holiday)}
+                                      </span>
+
+                                      <span className="text-sm text-slate-500">
+                                        {bookingTotalWorkingDays(holiday, bankHolidayMap)} day(s)
+                                      </span>
+                                    </div>
+
+                                    <div className="mt-1 text-sm text-slate-600">
+                                      {holiday.start} → {holiday.end}
+                                    </div>
+
+                                    {holiday.notes && (
+                                      <div className="mt-2 text-xs text-slate-500">
+                                        {holiday.notes}
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                            </div>
+                          )}
+                        </div>
+
                         <div className="flex gap-2 pt-2">
                           <Button onClick={() => saveEdit(editingEmployee.id)}>
                             Save Changes
