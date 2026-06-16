@@ -1025,7 +1025,7 @@ export default function IrishHolidayPlanner() {
     setNewStaffNumber("");
     setNewDepartmentIds(departments[0]?.id ? [departments[0].id] : []);
     setNewEntitlement(25);
-    setEmployeeSuccess(`${fullName} has been added successfully.`);
+    showToast(`${fullName} has been added successfully.`, "success");
     await loadEmployees();
   }
 
@@ -1052,7 +1052,11 @@ export default function IrishHolidayPlanner() {
       return;
     }
 
+    const employee = employees.find((item) => item.id === id);
+
     if (selectedEmployeeId === id) setSelectedEmployeeId("");
+
+    showToast(`${employee ? employeeFullName(employee) : "Employee"} has been deactivated.`, "success");
     await loadEmployees();
   }
 
@@ -1081,6 +1085,9 @@ export default function IrishHolidayPlanner() {
       return;
     }
 
+    const employee = employees.find((item) => item.id === id);
+
+    showToast(`${employee ? employeeFullName(employee) : "Employee"} has been reactivated.`, "success");
     await loadEmployees();
   }
 
@@ -1104,7 +1111,11 @@ export default function IrishHolidayPlanner() {
       return;
     }
 
+    const employee = employees.find((item) => item.id === id);
+
     if (selectedEmployeeId === id) setSelectedEmployeeId("");
+
+    showToast(`${employee ? employeeFullName(employee) : "Employee"} has been deleted.`, "success");
     await loadEmployees();
   }
 
@@ -1197,6 +1208,7 @@ export default function IrishHolidayPlanner() {
       return;
     }
 
+    showToast(`${firstName} ${lastName} has been updated successfully.`, "success");
     setEditingId(null);
     await loadEmployees();
   }
