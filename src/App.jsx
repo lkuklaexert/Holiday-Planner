@@ -9,7 +9,7 @@ import { useToast } from "./components/common/ToastProvider";
 import ExcelJS from "exceljs";
 import { login, resetPassword, updatePassword } from "./features/auth/authService";
 import AuthGate from "./app/AuthGate";
-import { AuthPage, ChangePasswordForm, LoginForm } from "./features/auth";
+import { AuthPage, ChangePasswordForm } from "./features/auth";
 
 const LEAVE_CATEGORIES = {
   STANDARD: "standard_entitlement",
