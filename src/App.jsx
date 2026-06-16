@@ -1077,7 +1077,7 @@ export default function IrishHolidayPlanner() {
       .eq("id", id);
 
     if (error) {
-      alert(error.message);
+      showToast(error.message, "error");
       return;
     }
 
@@ -1100,7 +1100,7 @@ export default function IrishHolidayPlanner() {
     const { error } = await supabase.from("employees").delete().eq("id", id);
 
     if (error) {
-      alert(error.message);
+      showToast(error.message, "error");
       return;
     }
 
@@ -1169,7 +1169,7 @@ export default function IrishHolidayPlanner() {
       .eq("id", id);
 
     if (error) {
-      alert(error.message);
+      showToast(error.message, "error");
       return;
     }
 
@@ -1229,7 +1229,7 @@ export default function IrishHolidayPlanner() {
     });
 
     if (error) {
-      alert(error.message);
+      showToast(error.message, "error");
       return;
     }
 
@@ -1255,7 +1255,7 @@ export default function IrishHolidayPlanner() {
       .eq("id", editingBooking.bookingId);
 
     if (error) {
-      alert(error.message);
+      showToast(error.message, "error");
       return;
     }
 
@@ -1270,7 +1270,7 @@ export default function IrishHolidayPlanner() {
     const { error } = await supabase.from("holiday_bookings").delete().eq("id", holidayId);
 
     if (error) {
-      alert(error.message);
+      showToast(error.message, "error");
       return;
     }
 
