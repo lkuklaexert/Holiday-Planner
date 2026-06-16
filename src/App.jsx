@@ -2317,16 +2317,12 @@ export default function IrishHolidayPlanner() {
                         <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
                           <div className="rounded-xl bg-white p-3 shadow-sm">
                             <p className="text-xs text-slate-500">Entitlement</p>
-                            <p className="text-xl font-bold">
-                              {editingEmployee.entitlement}
-                            </p>
+                            <p className="text-xl font-bold">{editingEmployee.entitlement}</p>
                           </div>
 
                           <div className="rounded-xl bg-white p-3 shadow-sm">
                             <p className="text-xs text-slate-500">Used</p>
-                            <p className="text-xl font-bold">
-                              {standardUsed}
-                            </p>
+                            <p className="text-xl font-bold">{standardUsed}</p>
                           </div>
 
                           <div className="rounded-xl bg-white p-3 shadow-sm">
@@ -2338,72 +2334,48 @@ export default function IrishHolidayPlanner() {
 
                           <div className="rounded-xl bg-white p-3 shadow-sm">
                             <p className="text-xs text-slate-500">Exceptions</p>
-                            <p className="text-xl font-bold">
-                              {exceptions}
-                            </p>
+                            <p className="text-xl font-bold">{exceptions}</p>
                           </div>
 
                           <div className="rounded-xl bg-white p-3 shadow-sm">
                             <p className="text-xs text-slate-500">Sick</p>
-                            <p className="text-xl font-bold">
-                              {sickDays}
-                            </p>
+                            <p className="text-xl font-bold">{sickDays}</p>
                           </div>
                         </div>
                       </div>
 
-                      {/* The edit form stays in the same panel so existing save behaviour remains unchanged. */}
+                      {/* Side panel provides more space for employee fields without expanding the table */}
                       <div className="space-y-3">
-                        <div>
-                          <label className="mb-1 block text-xs font-medium text-slate-600">
-                            First name
-                          </label>
-                          <input
-                            value={editFirstName}
-                            onChange={(e) => setEditFirstName(e.target.value)}
-                            className="w-full rounded-xl border px-3 py-2 text-sm"
-                            placeholder="First name"
-                          />
-                        </div>
+                        <input
+                          value={editFirstName}
+                          onChange={(e) => setEditFirstName(e.target.value)}
+                          className="w-full rounded-xl border px-3 py-2 text-sm"
+                          placeholder="First name"
+                        />
 
-                        <div>
-                          <label className="mb-1 block text-xs font-medium text-slate-600">
-                            Last name
-                          </label>
-                          <input
-                            value={editLastName}
-                            onChange={(e) => setEditLastName(e.target.value)}
-                            className="w-full rounded-xl border px-3 py-2 text-sm"
-                            placeholder="Last name"
-                          />
-                        </div>
+                        <input
+                          value={editLastName}
+                          onChange={(e) => setEditLastName(e.target.value)}
+                          className="w-full rounded-xl border px-3 py-2 text-sm"
+                          placeholder="Last name"
+                        />
 
-                        <div>
-                          <label className="mb-1 block text-xs font-medium text-slate-600">
-                            Staff number
-                          </label>
-                          <input
-                            value={editStaffNumber}
-                            onChange={(e) =>
-                              setEditStaffNumber(e.target.value.replace(/\D/g, "").slice(0, 10))
-                            }
-                            className="w-full rounded-xl border px-3 py-2 text-sm"
-                            placeholder="Staff number"
-                          />
-                        </div>
+                        <input
+                          value={editStaffNumber}
+                          onChange={(e) =>
+                            setEditStaffNumber(e.target.value.replace(/\D/g, "").slice(0, 10))
+                          }
+                          className="w-full rounded-xl border px-3 py-2 text-sm"
+                          placeholder="Staff number"
+                        />
 
-                        <div>
-                          <label className="mb-1 block text-xs font-medium text-slate-600">
-                            Entitlement
-                          </label>
-                          <input
-                            type="number"
-                            value={editEntitlement}
-                            onChange={(e) => setEditEntitlement(e.target.value)}
-                            className="w-full rounded-xl border px-3 py-2 text-sm"
-                            placeholder="Entitlement"
-                          />
-                        </div>
+                        <input
+                          type="number"
+                          value={editEntitlement}
+                          onChange={(e) => setEditEntitlement(e.target.value)}
+                          className="w-full rounded-xl border px-3 py-2 text-sm"
+                          placeholder="Entitlement"
+                        />
 
                         <div className="rounded-xl border p-3">
                           <p className="mb-2 text-sm font-medium">Departments</p>
