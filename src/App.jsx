@@ -10,6 +10,7 @@ import ExcelJS from "exceljs";
 import { login, resetPassword, updatePassword } from "./features/auth/authService";
 import LoginForm from "./features/auth/LoginForm";
 import AuthGate from "./app/AuthGate";
+import AuthPage from "./features/auth/AuthPage";
 
 const LEAVE_CATEGORIES = {
   STANDARD: "standard_entitlement",
@@ -1438,914 +1439,906 @@ export default function IrishHolidayPlanner() {
   return (
     <AuthGate
       session={session}
-      authFallback={(
-      <div className="min-h-screen flex items-center justify-center bg-slate-100 p-4">
-        <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-lg">
-          <h1 className="mb-4 text-2xl font-bold text-center">
-            Employee Holiday Planner
-          </h1>
-  
-          <LoginForm
-            email={loginEmail}
-            password={loginPassword}
-            error={loginError}
-            onEmailChange={setLoginEmail}
-            onPasswordChange={setLoginPassword}
-            onLogin={handleLogin}
-            onResetPassword={handleResetPassword}
-          />
-        </div>
-      </div>
-      )}
+      authFallback={
+        <AuthPage
+          loginEmail={loginEmail}
+          loginPassword={loginPassword}
+          loginError={loginError}
+          setLoginEmail={setLoginEmail}
+          setLoginPassword={setLoginPassword}
+          handleLogin={handleLogin}
+          handleResetPassword={handleResetPassword}
+        />
+      }
     >
-    <div className="min-h-screen bg-slate-50 p-4 text-slate-900">
-      <div className="mx-auto max-w-[1600px] space-y-4">
-        <div className="flex flex-wrap gap-2 rounded-2xl bg-white p-3 shadow-sm">
-          <Button
-            variant={activeView === "planner" ? "primary" : "outline"}
-            onClick={() => setActiveView("planner")}
-          >
-            Planner
-          </Button>
-
-          {canManagePeople && (
+      <div className="min-h-screen bg-slate-50 p-4 text-slate-900">
+        <div className="mx-auto max-w-[1600px] space-y-4">
+          <div className="flex flex-wrap gap-2 rounded-2xl bg-white p-3 shadow-sm">
             <Button
-              variant={activeView === "employees" ? "primary" : "outline"}
-              onClick={() => setActiveView("employees")}
+              variant={activeView === "planner" ? "primary" : "outline"}
+              onClick={() => setActiveView("planner")}
             >
-              Employees
+              Planner
             </Button>
-          )}
 
-          {canManageDepartments && (
-            <Button
-              variant={activeView === "departments" ? "primary" : "outline"}
-              onClick={() => setActiveView("departments")}
-            >
-              Departments
-            </Button>
-          )}
+            {canManagePeople && (
+              <Button
+                variant={activeView === "employees" ? "primary" : "outline"}
+                onClick={() => setActiveView("employees")}
+              >
+                Employees
+              </Button>
+            )}
 
-          {canManageBookings && (
-            <Button
-              variant={activeView === "bookings" ? "primary" : "outline"}
-              onClick={() => setActiveView("bookings")}
-            >
-              Bookings
-            </Button>
-          )}
-        </div>
-        <div className="flex flex-col gap-3 rounded-2xl bg-white p-5 shadow-sm md:flex-row md:items-center md:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Irish Employee Holiday Planner</h1>
-            <p className="text-sm text-slate-600">Shared planner with entitlement holidays, exceptions, paid/unpaid status and remaining balance.</p>
+            {canManageDepartments && (
+              <Button
+                variant={activeView === "departments" ? "primary" : "outline"}
+                onClick={() => setActiveView("departments")}
+              >
+                Departments
+              </Button>
+            )}
+
+            {canManageBookings && (
+              <Button
+                variant={activeView === "bookings" ? "primary" : "outline"}
+                onClick={() => setActiveView("bookings")}
+              >
+                Bookings
+              </Button>
+            )}
           </div>
+          <div className="flex flex-col gap-3 rounded-2xl bg-white p-5 shadow-sm md:flex-row md:items-center md:justify-between">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight">Irish Employee Holiday Planner</h1>
+              <p className="text-sm text-slate-600">Shared planner with entitlement holidays, exceptions, paid/unpaid status and remaining balance.</p>
+            </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <Button variant="outline" onClick={async () => await supabase.auth.signOut()}>Log out</Button>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button variant="outline" onClick={async () => await supabase.auth.signOut()}>Log out</Button>
 
-            <form onSubmit={handleSetNewPassword} className="flex items-center gap-2">
-              <input type="password" placeholder="New password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} className="rounded-xl border px-3 py-2 text-sm" required />
-              <button type="submit" className="rounded-xl bg-slate-900 px-3 py-2 text-sm font-medium text-white">Change Password</button>
-            </form>
+              <form onSubmit={handleSetNewPassword} className="flex items-center gap-2">
+                <input type="password" placeholder="New password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} className="rounded-xl border px-3 py-2 text-sm" required />
+                <button type="submit" className="rounded-xl bg-slate-900 px-3 py-2 text-sm font-medium text-white">Change Password</button>
+              </form>
 
-            <Icon label="calendar" />
-            <label className="text-sm font-medium">Year</label>
-            <input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} className="w-28 rounded-xl border px-3 py-2 text-sm" />
+              <Icon label="calendar" />
+              <label className="text-sm font-medium">Year</label>
+              <input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} className="w-28 rounded-xl border px-3 py-2 text-sm" />
+            </div>
           </div>
-        </div>
-        {activeView === "employees" && (
-          <div className="space-y-4">
-            <Card>
-              <CardContent className="space-y-3 p-4">
-                <div className="flex items-center gap-2">
-                  <Icon label="users" />
-                  <h2 className="font-semibold">Employees</h2>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <input placeholder="First name" value={newFirstName} onChange={(e) => setNewFirstName(e.target.value)} className="rounded-xl border px-3 py-2 text-sm" />
-                  <input placeholder="Last name" value={newLastName} onChange={(e) => setNewLastName(e.target.value)} className="rounded-xl border px-3 py-2 text-sm" />
-                  <input placeholder="Staff no. max 10 digits" value={newStaffNumber} onChange={(e) => setNewStaffNumber(e.target.value.replace(/\D/g, "").slice(0, 10))} className="rounded-xl border px-3 py-2 text-sm" />
-                  <input type="number" value={newEntitlement} onChange={(e) => setNewEntitlement(e.target.value)} className="rounded-xl border px-3 py-2 text-sm" />
-                </div>
-
-                <div className="rounded-xl border p-3">
-                  <p className="mb-2 text-sm font-medium">Departments</p>
-
-                  <div className="grid gap-2 md:grid-cols-3">
-                    {departments.map((department) => (
-                      <label key={department.id} className="flex items-center gap-2 text-sm">
-                        <input
-                          type="checkbox"
-                          checked={newDepartmentIds.includes(department.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setNewDepartmentIds([...newDepartmentIds, department.id]);
-                            } else {
-                              setNewDepartmentIds(
-                                newDepartmentIds.filter((id) => id !== department.id)
-                              );
-                            }
-                          }}
-                        />
-                        {department.name}
-                      </label>
-                    ))}
+          {activeView === "employees" && (
+            <div className="space-y-4">
+              <Card>
+                <CardContent className="space-y-3 p-4">
+                  <div className="flex items-center gap-2">
+                    <Icon label="users" />
+                    <h2 className="font-semibold">Employees</h2>
                   </div>
-                </div>
-                {employeeError && (
-                  <p className="text-sm text-red-600">
-                    {employeeError}
-                  </p>
-                )}
-                {employeeSuccess && (
-                  <p className="text-sm text-emerald-600">
-                    {employeeSuccess}
-                  </p>
-                )}
 
-                <Button onClick={addEmployee} className="w-full"><Icon label="plus" /> Add employee</Button>
+                  <div className="grid grid-cols-2 gap-2">
+                    <input placeholder="First name" value={newFirstName} onChange={(e) => setNewFirstName(e.target.value)} className="rounded-xl border px-3 py-2 text-sm" />
+                    <input placeholder="Last name" value={newLastName} onChange={(e) => setNewLastName(e.target.value)} className="rounded-xl border px-3 py-2 text-sm" />
+                    <input placeholder="Staff no. max 10 digits" value={newStaffNumber} onChange={(e) => setNewStaffNumber(e.target.value.replace(/\D/g, "").slice(0, 10))} className="rounded-xl border px-3 py-2 text-sm" />
+                    <input type="number" value={newEntitlement} onChange={(e) => setNewEntitlement(e.target.value)} className="rounded-xl border px-3 py-2 text-sm" />
+                  </div>
 
-                <div className="rounded-xl border bg-slate-50 p-3">
-                  <label className="mb-2 block text-sm font-medium">
-                    Import employees from Excel
-                  </label>
-                  <Button variant="outline" onClick={downloadEmployeeImportTemplate} className="mb-2">
-                    Download template
-                  </Button>
+                  <div className="rounded-xl border p-3">
+                    <p className="mb-2 text-sm font-medium">Departments</p>
 
+                    <div className="grid gap-2 md:grid-cols-3">
+                      {departments.map((department) => (
+                        <label key={department.id} className="flex items-center gap-2 text-sm">
+                          <input
+                            type="checkbox"
+                            checked={newDepartmentIds.includes(department.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setNewDepartmentIds([...newDepartmentIds, department.id]);
+                              } else {
+                                setNewDepartmentIds(
+                                  newDepartmentIds.filter((id) => id !== department.id)
+                                );
+                              }
+                            }}
+                          />
+                          {department.name}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  {employeeError && (
+                    <p className="text-sm text-red-600">
+                      {employeeError}
+                    </p>
+                  )}
+                  {employeeSuccess && (
+                    <p className="text-sm text-emerald-600">
+                      {employeeSuccess}
+                    </p>
+                  )}
+
+                  <Button onClick={addEmployee} className="w-full"><Icon label="plus" /> Add employee</Button>
+
+                  <div className="rounded-xl border bg-slate-50 p-3">
+                    <label className="mb-2 block text-sm font-medium">
+                      Import employees from Excel
+                    </label>
+                    <Button variant="outline" onClick={downloadEmployeeImportTemplate} className="mb-2">
+                      Download template
+                    </Button>
+
+                    <input
+                      type="file"
+                      accept=".xlsx"
+                      onChange={importEmployeesFromExcel}
+                      className="w-full rounded-xl border bg-white px-3 py-2 text-sm"
+                    />
+
+                    {(employeeImportResult.imported > 0 ||
+                      employeeImportResult.skipped > 0) && (
+                        <div className="mt-3 rounded-xl border bg-white p-4 shadow-sm">
+                          <h3 className="mb-3 font-semibold">
+                            Employee Import Results
+                          </h3>
+
+                          <div className="mb-4 grid grid-cols-2 gap-3">
+                            <div className="rounded-lg bg-emerald-50 p-3">
+                              <div className="text-xs uppercase text-emerald-700">
+                                Imported
+                              </div>
+
+                              <div className="text-2xl font-bold text-emerald-700">
+                                {employeeImportResult.imported}
+                              </div>
+                            </div>
+
+                            <div className="rounded-lg bg-amber-50 p-3">
+                              <div className="text-xs uppercase text-amber-700">
+                                Skipped
+                              </div>
+
+                              <div className="text-2xl font-bold text-amber-700">
+                                {employeeImportResult.skipped}
+                              </div>
+                            </div>
+                          </div>
+
+                          {employeeImportResult.errors.length > 0 && (
+                            <>
+                              <h4 className="mb-2 font-medium text-red-600">
+                                Issues Found
+                              </h4>
+
+                              <div className="max-h-56 overflow-y-auto rounded-lg border bg-slate-50 p-3">
+                                {employeeImportResult.errors.map((error, index) => (
+                                  <div
+                                    key={index}
+                                    className="mb-2 text-sm text-slate-700"
+                                  >
+                                    • {error}
+                                  </div>
+                                ))}
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      )}
+                  </div>
                   <input
-                    type="file"
-                    accept=".xlsx"
-                    onChange={importEmployeesFromExcel}
-                    className="w-full rounded-xl border bg-white px-3 py-2 text-sm"
+                    type="text"
+                    placeholder="Search employees by name, staff number or department..."
+                    value={employeeSearch}
+                    onChange={(e) => setEmployeeSearch(e.target.value)}
+                    className="w-full rounded-xl border px-3 py-2 text-sm"
                   />
 
-                  {(employeeImportResult.imported > 0 ||
-                    employeeImportResult.skipped > 0) && (
-                      <div className="mt-3 rounded-xl border bg-white p-4 shadow-sm">
-                        <h3 className="mb-3 font-semibold">
-                          Employee Import Results
-                        </h3>
+                  <div className="overflow-auto rounded-xl border">
+                    <table className="min-w-full border-collapse text-sm">
+                      <thead>
+                        <tr className="border-b bg-slate-100">
+                          <th className="p-2 text-left">Employee</th>
+                          <th className="p-2 text-left">Department</th>
+                          <th className="w-16 p-2 text-center">Ent.</th>
+                          <th className="w-16 p-2 text-center">Used</th>
+                          <th className="w-16 p-2 text-center">Remain</th>
+                          <th className="w-20 p-2 text-center">Exceptions</th>
+                          <th className="w-16 p-2 text-center">Sick</th>
+                          <th className="p-2 text-center">Actions</th>
+                        </tr>
+                      </thead>
 
-                        <div className="mb-4 grid grid-cols-2 gap-3">
-                          <div className="rounded-lg bg-emerald-50 p-3">
-                            <div className="text-xs uppercase text-emerald-700">
-                              Imported
-                            </div>
+                      <tbody>
+                        {filteredActiveEmployees.map((employee) => {
+                          const standardUsed = usedDays(employee);
+                          const exceptions = exceptionDays(employee);
+                          const remaining = employee.entitlement - standardUsed;
+                          const isSelected = selectedEmployeeId === employee.id;
+                          const sickDays =
+                            leaveTypeDays(employee, "sickness_certified", bankHolidayMap) +
+                            leaveTypeDays(employee, "sickness_uncertified", bankHolidayMap) +
+                            leaveTypeDays(employee, "statutory_sick_leave", bankHolidayMap);
 
-                            <div className="text-2xl font-bold text-emerald-700">
-                              {employeeImportResult.imported}
-                            </div>
-                          </div>
+                          return (
+                            <React.Fragment key={employee.id}>
+                              <tr className={`border-b ${isSelected ? "bg-slate-100" : "bg-white"}`}>
+                                <td className="p-2">
+                                  <button onClick={() => setSelectedEmployeeId(employee.id)} className="text-left">
+                                    <p className="font-semibold">{employeeFullName(employee)}</p>
+                                    <p className="text-xs text-slate-500">
+                                      Staff No: {employee.staff_number || "-"}
+                                    </p>
+                                  </button>
+                                </td>
 
-                          <div className="rounded-lg bg-amber-50 p-3">
-                            <div className="text-xs uppercase text-amber-700">
-                              Skipped
-                            </div>
+                                <td className="p-2">
+                                  <DepartmentBadges employee={employee} />
+                                </td>
+                                <td className="w-16 p-2 text-center">{employee.entitlement}</td>
+                                <td className="w-16 p-2 text-center">{standardUsed}</td>
+                                <td className={`w-16 p-2 text-center font-semibold ${remaining < 0 ? "text-red-600" : ""}`}>
+                                  {remaining}
+                                </td>
+                                <td className="w-20 p-2 text-center">{exceptions}</td>
+                                <td className="w-16 p-2 text-center">{sickDays}</td>
 
-                            <div className="text-2xl font-bold text-amber-700">
-                              {employeeImportResult.skipped}
-                            </div>
-                          </div>
-                        </div>
+                                <td className="p-2 text-center">
+                                  <div className="flex justify-center gap-2">
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => startEdit(employee)}
+                                    >
+                                      <Icon label="pencil" /> Edit
+                                    </Button>
 
-                        {employeeImportResult.errors.length > 0 && (
-                          <>
-                            <h4 className="mb-2 font-medium text-red-600">
-                              Issues Found
-                            </h4>
-
-                            <div className="max-h-56 overflow-y-auto rounded-lg border bg-slate-50 p-3">
-                              {employeeImportResult.errors.map((error, index) => (
-                                <div
-                                  key={index}
-                                  className="mb-2 text-sm text-slate-700"
-                                >
-                                  • {error}
-                                </div>
-                              ))}
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    )}
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search employees by name, staff number or department..."
-                  value={employeeSearch}
-                  onChange={(e) => setEmployeeSearch(e.target.value)}
-                  className="w-full rounded-xl border px-3 py-2 text-sm"
-                />
-
-                <div className="overflow-auto rounded-xl border">
-                  <table className="min-w-full border-collapse text-sm">
-                    <thead>
-                      <tr className="border-b bg-slate-100">
-                        <th className="p-2 text-left">Employee</th>
-                        <th className="p-2 text-left">Department</th>
-                        <th className="w-16 p-2 text-center">Ent.</th>
-                        <th className="w-16 p-2 text-center">Used</th>
-                        <th className="w-16 p-2 text-center">Remain</th>
-                        <th className="w-20 p-2 text-center">Exceptions</th>
-                        <th className="w-16 p-2 text-center">Sick</th>
-                        <th className="p-2 text-center">Actions</th>
-                      </tr>
-                    </thead>
-
-                    <tbody>
-                      {filteredActiveEmployees.map((employee) => {
-                        const standardUsed = usedDays(employee);
-                        const exceptions = exceptionDays(employee);
-                        const remaining = employee.entitlement - standardUsed;
-                        const isSelected = selectedEmployeeId === employee.id;
-                        const sickDays =
-                          leaveTypeDays(employee, "sickness_certified", bankHolidayMap) +
-                          leaveTypeDays(employee, "sickness_uncertified", bankHolidayMap) +
-                          leaveTypeDays(employee, "statutory_sick_leave", bankHolidayMap);
-
-                        return (
-                          <React.Fragment key={employee.id}>
-                            <tr className={`border-b ${isSelected ? "bg-slate-100" : "bg-white"}`}>
-                              <td className="p-2">
-                                <button onClick={() => setSelectedEmployeeId(employee.id)} className="text-left">
-                                  <p className="font-semibold">{employeeFullName(employee)}</p>
-                                  <p className="text-xs text-slate-500">
-                                    Staff No: {employee.staff_number || "-"}
-                                  </p>
-                                </button>
-                              </td>
-
-                              <td className="p-2">
-                                <DepartmentBadges employee={employee} />
-                              </td>
-                              <td className="w-16 p-2 text-center">{employee.entitlement}</td>
-                              <td className="w-16 p-2 text-center">{standardUsed}</td>
-                              <td className={`w-16 p-2 text-center font-semibold ${remaining < 0 ? "text-red-600" : ""}`}>
-                                {remaining}
-                              </td>
-                              <td className="w-20 p-2 text-center">{exceptions}</td>
-                              <td className="w-16 p-2 text-center">{sickDays}</td>
-
-                              <td className="p-2 text-center">
-                                <div className="flex justify-center gap-2">
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => startEdit(employee)}
-                                  >
-                                    <Icon label="pencil" /> Edit
-                                  </Button>
-
-                                  {/* Both admins and managers can deactivate employees */}
-                                  <Button
-                                    size="sm"
-                                    variant="danger"
-                                    onClick={() => requestDeactivateEmployee(employee)}
-                                  >
-                                    Deactivate
-                                  </Button>
-
-                                  {/* Permanent deletion remains admin-only */}
-                                  {isAdmin && (
+                                    {/* Both admins and managers can deactivate employees */}
                                     <Button
                                       size="sm"
                                       variant="danger"
-                                      onClick={() => requestDeleteEmployee(employee)}
+                                      onClick={() => requestDeactivateEmployee(employee)}
                                     >
-                                      <Icon label="trash" /> Delete
+                                      Deactivate
                                     </Button>
-                                  )}
-                                </div>
-                              </td>
-                            </tr>
+
+                                    {/* Permanent deletion remains admin-only */}
+                                    {isAdmin && (
+                                      <Button
+                                        size="sm"
+                                        variant="danger"
+                                        onClick={() => requestDeleteEmployee(employee)}
+                                      >
+                                        <Icon label="trash" /> Delete
+                                      </Button>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
 
 
-                          </React.Fragment>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
+                            </React.Fragment>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
 
-                {canManagePeople && inactiveEmployees.length > 0 && (
-                  <div className="mt-6 space-y-2">
-                    <h3 className="font-semibold text-slate-700">Inactive Employees</h3>
+                  {canManagePeople && inactiveEmployees.length > 0 && (
+                    <div className="mt-6 space-y-2">
+                      <h3 className="font-semibold text-slate-700">Inactive Employees</h3>
 
-                    {inactiveEmployees.map((employee) => (
-                      <div key={employee.id} className="flex items-center justify-between rounded-xl border bg-slate-50 p-3 text-sm">
-                        <div>
-                          <p className="font-semibold text-slate-700">{employeeFullName(employee)}</p>
-                          <p className="text-xs text-slate-500">
-                            Staff No: {employee.staff_number || "-"} | Dept: {employeeDepartmentNames(employee)}
-                          </p>
+                      {inactiveEmployees.map((employee) => (
+                        <div key={employee.id} className="flex items-center justify-between rounded-xl border bg-slate-50 p-3 text-sm">
+                          <div>
+                            <p className="font-semibold text-slate-700">{employeeFullName(employee)}</p>
+                            <p className="text-xs text-slate-500">
+                              Staff No: {employee.staff_number || "-"} | Dept: {employeeDepartmentNames(employee)}
+                            </p>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <span className="rounded-full bg-slate-200 px-3 py-1 text-xs text-slate-700">
+                              Inactive
+                            </span>
+
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => requestReactivateEmployee(employee)}
+                            >
+                              Reactivate
+                            </Button>
+                          </div>
                         </div>
+                      ))}
+                    </div>
+                  )}
 
-                        <div className="flex items-center gap-2">
-                          <span className="rounded-full bg-slate-200 px-3 py-1 text-xs text-slate-700">
-                            Inactive
-                          </span>
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => requestReactivateEmployee(employee)}
-                          >
-                            Reactivate
-                          </Button>
-                        </div>
+          {activeView === "departments" && (
+            <div className="space-y-4">
+              <Card>
+                <CardContent className="space-y-3 p-4">
+                  <h2 className="font-semibold">Departments Admin</h2>
+                  <div className="flex gap-2">
+                    <input placeholder="New department" value={newDepartmentName} onChange={(e) => setNewDepartmentName(e.target.value)} className="flex-1 rounded-xl border px-3 py-2 text-sm" />
+                    <Button onClick={addDepartment}>Add</Button>
+                  </div>
+                  <div className="space-y-1">
+                    {departments.map((d) => (
+                      <div key={d.id} className="flex items-center justify-between rounded-xl border p-2 text-sm">
+                        <span>{d.name}</span>
+                        <Button size="sm" variant="danger" onClick={() => requestDeleteDepartment(d)}>Remove</Button>
                       </div>
                     ))}
                   </div>
-                )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
 
-              </CardContent>
-            </Card>
-          </div>
-        )}
+          {activeView === "bookings" && (
+            <div className="space-y-4">
 
-        {activeView === "departments" && (
-          <div className="space-y-4">
-            <Card>
-              <CardContent className="space-y-3 p-4">
-                <h2 className="font-semibold">Departments Admin</h2>
-                <div className="flex gap-2">
-                  <input placeholder="New department" value={newDepartmentName} onChange={(e) => setNewDepartmentName(e.target.value)} className="flex-1 rounded-xl border px-3 py-2 text-sm" />
-                  <Button onClick={addDepartment}>Add</Button>
-                </div>
-                <div className="space-y-1">
-                  {departments.map((d) => (
-                    <div key={d.id} className="flex items-center justify-between rounded-xl border p-2 text-sm">
-                      <span>{d.name}</span>
-                      <Button size="sm" variant="danger" onClick={() => requestDeleteDepartment(d)}>Remove</Button>
+              <Card>
+                <CardContent className="space-y-3 p-4">
+                  <h2 className="font-semibold">Add leave / holiday</h2>
+
+                  <select value={selectedEmployeeId || ""} onChange={(e) => setSelectedEmployeeId(e.target.value)} className="w-full rounded-xl border px-3 py-2 text-sm">
+                    {employees.map((e) => <option key={e.id} value={e.id}>{employeeFullName(e)}</option>)}
+                  </select>
+
+                  <div className="grid grid-cols-3 gap-2">
+                    <div>
+                      <label className="text-xs text-slate-600">Start</label>
+                      <input type="date" value={holidayStart} onChange={(e) => setHolidayStart(e.target.value)} className="w-full rounded-xl border px-3 py-2 text-sm" />
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {activeView === "bookings" && (
-          <div className="space-y-4">
-
-            <Card>
-              <CardContent className="space-y-3 p-4">
-                <h2 className="font-semibold">Add leave / holiday</h2>
-
-                <select value={selectedEmployeeId || ""} onChange={(e) => setSelectedEmployeeId(e.target.value)} className="w-full rounded-xl border px-3 py-2 text-sm">
-                  {employees.map((e) => <option key={e.id} value={e.id}>{employeeFullName(e)}</option>)}
-                </select>
-
-                <div className="grid grid-cols-3 gap-2">
-                  <div>
-                    <label className="text-xs text-slate-600">Start</label>
-                    <input type="date" value={holidayStart} onChange={(e) => setHolidayStart(e.target.value)} className="w-full rounded-xl border px-3 py-2 text-sm" />
+                    <div>
+                      <label className="text-xs text-slate-600">End</label>
+                      <input type="date" value={holidayEnd} onChange={(e) => setHolidayEnd(e.target.value)} className="w-full rounded-xl border px-3 py-2 text-sm" />
+                    </div>
+                    <div>
+                      <label className="text-xs text-slate-600">Amount</label>
+                      <select value={dayAmount} onChange={(e) => setDayAmount(Number(e.target.value))} className="w-full rounded-xl border px-3 py-2 text-sm">
+                        <option value={1}>Full day</option>
+                        <option value={0.5}>Half day</option>
+                      </select>
+                    </div>
                   </div>
+
                   <div>
-                    <label className="text-xs text-slate-600">End</label>
-                    <input type="date" value={holidayEnd} onChange={(e) => setHolidayEnd(e.target.value)} className="w-full rounded-xl border px-3 py-2 text-sm" />
-                  </div>
-                  <div>
-                    <label className="text-xs text-slate-600">Amount</label>
-                    <select value={dayAmount} onChange={(e) => setDayAmount(Number(e.target.value))} className="w-full rounded-xl border px-3 py-2 text-sm">
-                      <option value={1}>Full day</option>
-                      <option value={0.5}>Half day</option>
+                    <label className="text-xs text-slate-600">Leave category</label>
+                    <select
+                      value={leaveCategory}
+                      onChange={(e) => setLeaveCategory(e.target.value)}
+                      className="w-full rounded-xl border px-3 py-2 text-sm"
+                    >
+                      {LEAVE_TYPES.map((type) => (
+                        <option key={type.value} value={type.value}>
+                          {type.label}
+                        </option>
+                      ))}
                     </select>
                   </div>
-                </div>
 
-                <div>
-                  <label className="text-xs text-slate-600">Leave category</label>
-                  <select
-                    value={leaveCategory}
-                    onChange={(e) => setLeaveCategory(e.target.value)}
-                    className="w-full rounded-xl border px-3 py-2 text-sm"
-                  >
-                    {LEAVE_TYPES.map((type) => (
-                      <option key={type.value} value={type.value}>
-                        {type.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                  <div>
+                    <label className="text-xs text-slate-600">Paid status</label>
+                    <select
+                      value={paymentStatus}
+                      onChange={(e) => setPaymentStatus(e.target.value)}
+                      className="w-full rounded-xl border px-3 py-2 text-sm"
+                    >
+                      <option value="paid">Paid</option>
+                      <option value="unpaid">Unpaid</option>
+                    </select>
+                  </div>
 
-                <div>
-                  <label className="text-xs text-slate-600">Paid status</label>
-                  <select
-                    value={paymentStatus}
-                    onChange={(e) => setPaymentStatus(e.target.value)}
-                    className="w-full rounded-xl border px-3 py-2 text-sm"
-                  >
-                    <option value="paid">Paid</option>
-                    <option value="unpaid">Unpaid</option>
-                  </select>
-                </div>
-
-                <textarea value={holidayNotes} onChange={(e) => setHolidayNotes(e.target.value)} className="min-h-[70px] w-full rounded-xl border px-3 py-2 text-sm" placeholder="Optional note" />
-                <Button
-                  onClick={editingBooking ? updateHoliday : addHoliday}
-                  className="w-full"
-                  disabled={!selectedEmployee}
-                >
-                  {editingBooking ? "Update booking" : "Add booking"}
-                </Button>
-
-                {editingBooking && (
+                  <textarea value={holidayNotes} onChange={(e) => setHolidayNotes(e.target.value)} className="min-h-[70px] w-full rounded-xl border px-3 py-2 text-sm" placeholder="Optional note" />
                   <Button
-                    variant="outline"
-                    className="w-full mt-2"
-                    onClick={() => {
-                      setEditingBooking(null);
-                    }}
+                    onClick={editingBooking ? updateHoliday : addHoliday}
+                    className="w-full"
+                    disabled={!selectedEmployee}
                   >
-                    Cancel edit
+                    {editingBooking ? "Update booking" : "Add booking"}
                   </Button>
-                )}
-              </CardContent>
-            </Card>
 
-            <Card>
-              <CardContent className="p-4">
-                <div className="mb-4 flex items-center justify-between gap-2">
-                  <h2 className="font-semibold">All Bookings</h2>
+                  {editingBooking && (
+                    <Button
+                      variant="outline"
+                      className="w-full mt-2"
+                      onClick={() => {
+                        setEditingBooking(null);
+                      }}
+                    >
+                      Cancel edit
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
 
-                  <Button variant="outline" onClick={exportBookingsToExcel}>
-                    Export to Excel
-                  </Button>
-                </div>
-                <div className="mb-4 grid gap-2 md:grid-cols-[1fr_200px_200px_200px_200px]">
-                  <input
-                    type="text"
-                    placeholder="Search employee..."
-                    value={bookingSearch}
-                    onChange={(e) => setBookingSearch(e.target.value)}
-                    className="w-full rounded-xl border px-3 py-2 text-sm"
-                  />
+              <Card>
+                <CardContent className="p-4">
+                  <div className="mb-4 flex items-center justify-between gap-2">
+                    <h2 className="font-semibold">All Bookings</h2>
+
+                    <Button variant="outline" onClick={exportBookingsToExcel}>
+                      Export to Excel
+                    </Button>
+                  </div>
+                  <div className="mb-4 grid gap-2 md:grid-cols-[1fr_200px_200px_200px_200px]">
+                    <input
+                      type="text"
+                      placeholder="Search employee..."
+                      value={bookingSearch}
+                      onChange={(e) => setBookingSearch(e.target.value)}
+                      className="w-full rounded-xl border px-3 py-2 text-sm"
+                    />
+
+                    <select
+                      value={departmentFilter}
+                      onChange={(e) => setDepartmentFilter(e.target.value)}
+                      className="w-full rounded-xl border px-3 py-2 text-sm"
+                    >
+                      <option value="all">All departments</option>
+                      {departments.map((department) => (
+                        <option key={department.id} value={department.id}>
+                          {department.name}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      value={bookingLeaveTypeFilter}
+                      onChange={(e) => setBookingLeaveTypeFilter(e.target.value)}
+                      className="w-full rounded-xl border px-3 py-2 text-sm"
+                    >
+                      <option value="all">All leave types</option>
+
+                      {LEAVE_TYPES.map((type) => (
+                        <option key={type.value} value={type.value}>
+                          {type.label}
+                        </option>
+                      ))}
+                    </select>
+                    <select
+                      value={bookingDateStatusFilter}
+                      onChange={(e) => setBookingDateStatusFilter(e.target.value)}
+                      className="w-full rounded-xl border px-3 py-2 text-sm"
+                    >
+                      <option value="all">All dates</option>
+                      <option value="current">Currently on leave</option>
+                      <option value="future">Future bookings</option>
+                      <option value="past">Past bookings</option>
+                    </select>
+                    <select
+                      value={bookingPaidStatusFilter}
+                      onChange={(e) => setBookingPaidStatusFilter(e.target.value)}
+                      className="w-full rounded-xl border px-3 py-2 text-sm"
+                    >
+                      <option value="all">All paid statuses</option>
+                      <option value="paid">Paid</option>
+                      <option value="unpaid">Unpaid</option>
+                    </select>
+                  </div>
+                  <div className="overflow-auto">
+                    <table className="min-w-full border-collapse text-sm">
+                      <thead>
+                        <tr className="border-b bg-slate-100">
+                          <th className="p-2 text-left">Employee</th>
+                          <th className="p-2 text-left">Department</th>
+                          <th className="p-2 text-left">Start</th>
+                          <th className="p-2 text-left">End</th>
+                          <th className="p-2 text-center">Days</th>
+                          <th className="p-2 text-left">Type</th>
+                          <th className="p-2 text-left">Paid</th>
+                          <th className="p-2 text-left">Notes</th>
+                          <th className="p-2 text-center">Actions</th>
+                        </tr>
+                      </thead>
+
+                      <tbody>
+                        {employees
+                          .filter((employee) => {
+                            const matchesSearch = employeeFullName(employee)
+                              .toLowerCase()
+                              .includes(bookingSearch.toLowerCase());
+
+                            const matchesDepartment =
+                              departmentFilter === "all" ||
+                              employeeHasDepartment(employee, departmentFilter)
+
+                            return matchesSearch && matchesDepartment;
+
+                          })
+                          .flatMap((employee) =>
+                            employee.holidays
+                              .filter((holiday) => {
+                                const today = new Date();
+                                const holidayStart = fromISO(holiday.start);
+                                const holidayEnd = fromISO(holiday.end);
+
+                                const matchesLeaveType =
+                                  bookingLeaveTypeFilter === "all" ||
+                                  holiday.leaveCategory === bookingLeaveTypeFilter;
+
+                                const matchesDateStatus =
+                                  bookingDateStatusFilter === "all" ||
+                                  (bookingDateStatusFilter === "current" &&
+                                    holidayStart <= today &&
+                                    holidayEnd >= today) ||
+                                  (bookingDateStatusFilter === "future" &&
+                                    holidayStart > today) ||
+                                  (bookingDateStatusFilter === "past" &&
+                                    holidayEnd < today);
+
+                                const matchesPaidStatus =
+                                  bookingPaidStatusFilter === "all" ||
+                                  holiday.paymentStatus === bookingPaidStatusFilter;
+
+                                return matchesLeaveType && matchesDateStatus && matchesPaidStatus;
+                              })
+                              .map((holiday) => (
+                                <tr key={holiday.id} className="border-b">
+                                  <td className="p-2">
+                                    {employeeFullName(employee)}
+                                  </td>
+
+                                  <td className="p-2">
+                                    {employeeDepartmentNames(employee)}
+                                  </td>
+
+                                  <td className="p-2">
+                                    {holiday.start}
+                                  </td>
+
+                                  <td className="p-2">
+                                    {holiday.end}
+                                  </td>
+
+                                  <td className="p-2 text-center">
+                                    {bookingTotalWorkingDays(
+                                      holiday,
+                                      bankHolidayMap
+                                    )}
+                                  </td>
+
+                                  <td className="p-2">
+                                    {bookingTypeLabel(holiday)}
+                                  </td>
+
+                                  <td className="p-2">
+                                    {paymentStatusLabel(holiday)}
+                                  </td>
+
+                                  <td className="p-2">
+                                    {holiday.notes || "-"}
+                                  </td>
+
+                                  <td className="p-2 text-center">
+                                    <div className="flex justify-center gap-2">
+                                      <Button
+                                        size="sm"
+                                        onClick={() => startEditBooking(employee, holiday)}
+                                      >
+                                        Edit
+                                      </Button>
+
+                                      <Button
+                                        size="sm"
+                                        variant="danger"
+                                        onClick={() => requestDeleteHoliday(employee, holiday)}
+                                      >
+                                        Delete
+                                      </Button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))
+                          )}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+          {activeView === "planner" && (
+            <div className="space-y-4">
+              <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-5">
+                <Card>
+                  <CardContent className="p-4">
+                    <p className="text-xs text-slate-500">Employees</p>
+                    <p className="text-2xl font-bold">{totalEmployees}</p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-4">
+                    <p className="text-xs text-slate-500">Currently on Leave</p>
+                    <p className="text-2xl font-bold">{currentlyOnLeave}</p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-4">
+                    <p className="text-xs text-slate-500">Currently Sick</p>
+                    <p className="text-2xl font-bold">{currentlyOnSickLeave}</p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-4">
+                    <p className="text-xs text-slate-500">Bookings Next 30 Days</p>
+                    <p className="text-2xl font-bold">{upcomingBookings30Days}</p>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="p-4">
+                    <p className="text-xs text-slate-500">Annual Leave Days Booked</p>
+                    <p className="text-2xl font-bold">{annualLeaveDaysBooked}</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
+                <div className="flex flex-wrap items-center gap-3 border-b p-4 text-sm">
+                  <label className="font-medium">Department</label>
 
                   <select
                     value={departmentFilter}
                     onChange={(e) => setDepartmentFilter(e.target.value)}
-                    className="w-full rounded-xl border px-3 py-2 text-sm"
+                    className="rounded-xl border px-3 py-2 text-sm"
                   >
                     <option value="all">All departments</option>
+
                     {departments.map((department) => (
                       <option key={department.id} value={department.id}>
                         {department.name}
                       </option>
                     ))}
                   </select>
-                  <select
-                    value={bookingLeaveTypeFilter}
-                    onChange={(e) => setBookingLeaveTypeFilter(e.target.value)}
-                    className="w-full rounded-xl border px-3 py-2 text-sm"
-                  >
-                    <option value="all">All leave types</option>
 
-                    {LEAVE_TYPES.map((type) => (
-                      <option key={type.value} value={type.value}>
-                        {type.label}
-                      </option>
-                    ))}
-                  </select>
+                  <label className="font-medium">Sort</label>
+
                   <select
-                    value={bookingDateStatusFilter}
-                    onChange={(e) => setBookingDateStatusFilter(e.target.value)}
-                    className="w-full rounded-xl border px-3 py-2 text-sm"
+                    value={nameSort}
+                    onChange={(e) => setNameSort(e.target.value)}
+                    className="rounded-xl border px-3 py-2 text-sm"
                   >
-                    <option value="all">All dates</option>
-                    <option value="current">Currently on leave</option>
-                    <option value="future">Future bookings</option>
-                    <option value="past">Past bookings</option>
+                    <option value="az">Name A → Z</option>
+                    <option value="za">Name Z → A</option>
                   </select>
-                  <select
-                    value={bookingPaidStatusFilter}
-                    onChange={(e) => setBookingPaidStatusFilter(e.target.value)}
-                    className="w-full rounded-xl border px-3 py-2 text-sm"
-                  >
-                    <option value="all">All paid statuses</option>
-                    <option value="paid">Paid</option>
-                    <option value="unpaid">Unpaid</option>
-                  </select>
+                  <label className="flex items-center gap-2 font-medium">
+                    <input
+                      type="checkbox"
+                      checked={holidayWindowFilter}
+                      onChange={(e) => {
+                        setHolidayWindowFilter(e.target.checked);
+
+                        if (e.target.checked) {
+                          setTimeout(scrollCalendarToToday, 50);
+                        }
+                      }}
+                    />
+
+                    Upcoming holidays (30 days)
+                  </label>
                 </div>
-                <div className="overflow-auto">
-                  <table className="min-w-full border-collapse text-sm">
-                    <thead>
-                      <tr className="border-b bg-slate-100">
-                        <th className="p-2 text-left">Employee</th>
-                        <th className="p-2 text-left">Department</th>
-                        <th className="p-2 text-left">Start</th>
-                        <th className="p-2 text-left">End</th>
-                        <th className="p-2 text-center">Days</th>
-                        <th className="p-2 text-left">Type</th>
-                        <th className="p-2 text-left">Paid</th>
-                        <th className="p-2 text-left">Notes</th>
-                        <th className="p-2 text-center">Actions</th>
+                <div className="flex flex-wrap gap-3 border-b p-4 text-xs">
+                  <span className="rounded-full bg-white px-3 py-1 ring-1 ring-slate-200">Weekday</span>
+                  <span className="rounded-full bg-slate-200 px-3 py-1">Weekend</span>
+                  <span className="rounded-full bg-amber-200 px-3 py-1">Irish bank holiday</span>
+                  <span className="rounded-full bg-emerald-200 px-3 py-1">Annual Leave</span>
+                  <span className="rounded-full bg-red-200 px-3 py-1">Certified Sick</span>
+                  <span className="rounded-full bg-orange-200 px-3 py-1">Uncertified Sick</span>
+                  <span className="rounded-full bg-purple-200 px-3 py-1">Compassionate / Bereavement</span>
+                  <span className="rounded-full bg-indigo-200 px-3 py-1">Jury Service</span>
+                  <span className="rounded-full bg-pink-200 px-3 py-1">Family Leave</span>
+                  <span className="rounded-full bg-sky-200 px-3 py-1">Other Leave</span>
+                </div>
+
+                <div id="calendar-scroll-container" className="overflow-auto" ref={(el) => {
+                  if (el && !el.dataset.scrolled && !holidayWindowFilter) {
+                    const approxColumnWidth = 34;
+                    const staticColumnsWidth = 490;
+                    el.scrollLeft = staticColumnsWidth + (currentMonth * 31 * approxColumnWidth);
+                    el.dataset.scrolled = "true";
+                  }
+                }}>
+                  <table className="min-w-full border-collapse text-xs">
+                    <thead className="sticky top-0 z-10 bg-white shadow-sm">
+                      <tr>
+                        <th className="sticky left-0 z-20 min-w-[220px] bg-white p-2 text-left">Employee</th>
+                        <th className="min-w-[90px] p-2 text-center">Staff No.</th>
+                        <th className="min-w-[110px] p-2 text-center">Dept.</th>
+                        <th className="min-w-[70px] p-2 text-center">Ent.</th>
+                        <th className="min-w-[90px] p-2 text-center">Std Used</th>
+                        <th className="min-w-[70px] p-2 text-center">Except.</th>
+                        <th className="min-w-[80px] p-2 text-center">Remain</th>
+
+                        {yearDays.map((date) => (
+                          <th key={toISO(date)} className="min-w-[34px] border-l p-1 text-center font-medium">
+                            <div>{date.getDate()}</div>
+                            <div className="text-[10px] text-slate-500">{months[date.getMonth()]}</div>
+                          </th>
+                        ))}
                       </tr>
                     </thead>
 
                     <tbody>
-                      {employees
-                        .filter((employee) => {
-                          const matchesSearch = employeeFullName(employee)
-                            .toLowerCase()
-                            .includes(bookingSearch.toLowerCase());
+                      {visibleEmployees.map((employee) => {
+                        const standardUsed = usedDays(employee);
+                        const exceptions = exceptionDays(employee);
+                        const remaining = employee.entitlement - standardUsed;
+                        const employeeHolidayMap = holidayDayMap.get(employee.id) || new Map();
 
-                          const matchesDepartment =
-                            departmentFilter === "all" ||
-                            employeeHasDepartment(employee, departmentFilter)
+                        return (
+                          <tr key={employee.id} className="border-t">
+                            <td className="sticky left-0 z-10 bg-white p-2 font-semibold">{employeeFullName(employee)}</td>
+                            <td className="p-2 text-center">{employee.staff_number || "-"}</td>
+                            <td className="p-2 text-center">{employeeDepartmentNames(employee)}</td>
+                            <td className="p-2 text-center">{employee.entitlement}</td>
+                            <td className="p-2 text-center">{standardUsed}</td>
+                            <td className="p-2 text-center">{exceptions}</td>
+                            <td className={`p-2 text-center font-semibold ${remaining < 0 ? "text-red-600" : "text-slate-900"}`}>{remaining}</td>
 
-                          return matchesSearch && matchesDepartment;
+                            {yearDays.map((date) => {
+                              const iso = toISO(date);
+                              const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+                              const bankName = bankHolidayMap.get(iso);
+                              const booking = employeeHolidayMap.get(iso);
+                              const isToday = iso === toISO(new Date());
 
-                        })
-                        .flatMap((employee) =>
-                          employee.holidays
-                            .filter((holiday) => {
-                              const today = new Date();
-                              const holidayStart = fromISO(holiday.start);
-                              const holidayEnd = fromISO(holiday.end);
+                              let cls = "bg-white";
+                              let mark = "";
 
-                              const matchesLeaveType =
-                                bookingLeaveTypeFilter === "all" ||
-                                holiday.leaveCategory === bookingLeaveTypeFilter;
+                              if (isWeekend) cls = "bg-slate-200";
+                              if (bankName) { cls = "bg-amber-200"; mark = "BH"; }
+                              if (booking) {
+                                cls = leaveTypeColorClass(booking);
+                                mark = Number(booking.dayAmount) === 0.5 ? "½" : isStandardBooking(booking) ? "H" : "L";
+                              }
 
-                              const matchesDateStatus =
-                                bookingDateStatusFilter === "all" ||
-                                (bookingDateStatusFilter === "current" &&
-                                  holidayStart <= today &&
-                                  holidayEnd >= today) ||
-                                (bookingDateStatusFilter === "future" &&
-                                  holidayStart > today) ||
-                                (bookingDateStatusFilter === "past" &&
-                                  holidayEnd < today);
-
-                              const matchesPaidStatus =
-                                bookingPaidStatusFilter === "all" ||
-                                holiday.paymentStatus === bookingPaidStatusFilter;
-
-                              return matchesLeaveType && matchesDateStatus && matchesPaidStatus;
-                            })
-                            .map((holiday) => (
-                              <tr key={holiday.id} className="border-b">
-                                <td className="p-2">
-                                  {employeeFullName(employee)}
+                              return (
+                                <td
+                                  key={iso}
+                                  className={`h-8 border-l text-center ${isToday ? "bg-orange-100 font-bold" : cls}`}
+                                  title={`${employeeFullName(employee)} | ${iso}`}
+                                >
+                                  {mark}
                                 </td>
-
-                                <td className="p-2">
-                                  {employeeDepartmentNames(employee)}
-                                </td>
-
-                                <td className="p-2">
-                                  {holiday.start}
-                                </td>
-
-                                <td className="p-2">
-                                  {holiday.end}
-                                </td>
-
-                                <td className="p-2 text-center">
-                                  {bookingTotalWorkingDays(
-                                    holiday,
-                                    bankHolidayMap
-                                  )}
-                                </td>
-
-                                <td className="p-2">
-                                  {bookingTypeLabel(holiday)}
-                                </td>
-
-                                <td className="p-2">
-                                  {paymentStatusLabel(holiday)}
-                                </td>
-
-                                <td className="p-2">
-                                  {holiday.notes || "-"}
-                                </td>
-
-                                <td className="p-2 text-center">
-                                  <div className="flex justify-center gap-2">
-                                    <Button
-                                      size="sm"
-                                      onClick={() => startEditBooking(employee, holiday)}
-                                    >
-                                      Edit
-                                    </Button>
-
-                                    <Button
-                                      size="sm"
-                                      variant="danger"
-                                      onClick={() => requestDeleteHoliday(employee, holiday)}
-                                    >
-                                      Delete
-                                    </Button>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))
-                        )}
+                              );
+                            })}
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-        {activeView === "planner" && (
-          <div className="space-y-4">
-            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-5">
-              <Card>
-                <CardContent className="p-4">
-                  <p className="text-xs text-slate-500">Employees</p>
-                  <p className="text-2xl font-bold">{totalEmployees}</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-4">
-                  <p className="text-xs text-slate-500">Currently on Leave</p>
-                  <p className="text-2xl font-bold">{currentlyOnLeave}</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-4">
-                  <p className="text-xs text-slate-500">Currently Sick</p>
-                  <p className="text-2xl font-bold">{currentlyOnSickLeave}</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-4">
-                  <p className="text-xs text-slate-500">Bookings Next 30 Days</p>
-                  <p className="text-2xl font-bold">{upcomingBookings30Days}</p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardContent className="p-4">
-                  <p className="text-xs text-slate-500">Annual Leave Days Booked</p>
-                  <p className="text-2xl font-bold">{annualLeaveDaysBooked}</p>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="overflow-hidden rounded-2xl bg-white shadow-sm">
-              <div className="flex flex-wrap items-center gap-3 border-b p-4 text-sm">
-                <label className="font-medium">Department</label>
-
-                <select
-                  value={departmentFilter}
-                  onChange={(e) => setDepartmentFilter(e.target.value)}
-                  className="rounded-xl border px-3 py-2 text-sm"
-                >
-                  <option value="all">All departments</option>
-
-                  {departments.map((department) => (
-                    <option key={department.id} value={department.id}>
-                      {department.name}
-                    </option>
-                  ))}
-                </select>
-
-                <label className="font-medium">Sort</label>
-
-                <select
-                  value={nameSort}
-                  onChange={(e) => setNameSort(e.target.value)}
-                  className="rounded-xl border px-3 py-2 text-sm"
-                >
-                  <option value="az">Name A → Z</option>
-                  <option value="za">Name Z → A</option>
-                </select>
-                <label className="flex items-center gap-2 font-medium">
-                  <input
-                    type="checkbox"
-                    checked={holidayWindowFilter}
-                    onChange={(e) => {
-                      setHolidayWindowFilter(e.target.checked);
-
-                      if (e.target.checked) {
-                        setTimeout(scrollCalendarToToday, 50);
-                      }
-                    }}
-                  />
-
-                  Upcoming holidays (30 days)
-                </label>
-              </div>
-              <div className="flex flex-wrap gap-3 border-b p-4 text-xs">
-                <span className="rounded-full bg-white px-3 py-1 ring-1 ring-slate-200">Weekday</span>
-                <span className="rounded-full bg-slate-200 px-3 py-1">Weekend</span>
-                <span className="rounded-full bg-amber-200 px-3 py-1">Irish bank holiday</span>
-                <span className="rounded-full bg-emerald-200 px-3 py-1">Annual Leave</span>
-                <span className="rounded-full bg-red-200 px-3 py-1">Certified Sick</span>
-                <span className="rounded-full bg-orange-200 px-3 py-1">Uncertified Sick</span>
-                <span className="rounded-full bg-purple-200 px-3 py-1">Compassionate / Bereavement</span>
-                <span className="rounded-full bg-indigo-200 px-3 py-1">Jury Service</span>
-                <span className="rounded-full bg-pink-200 px-3 py-1">Family Leave</span>
-                <span className="rounded-full bg-sky-200 px-3 py-1">Other Leave</span>
-              </div>
-
-              <div id="calendar-scroll-container" className="overflow-auto" ref={(el) => {
-                if (el && !el.dataset.scrolled && !holidayWindowFilter) {
-                  const approxColumnWidth = 34;
-                  const staticColumnsWidth = 490;
-                  el.scrollLeft = staticColumnsWidth + (currentMonth * 31 * approxColumnWidth);
-                  el.dataset.scrolled = "true";
-                }
-              }}>
-                <table className="min-w-full border-collapse text-xs">
-                  <thead className="sticky top-0 z-10 bg-white shadow-sm">
-                    <tr>
-                      <th className="sticky left-0 z-20 min-w-[220px] bg-white p-2 text-left">Employee</th>
-                      <th className="min-w-[90px] p-2 text-center">Staff No.</th>
-                      <th className="min-w-[110px] p-2 text-center">Dept.</th>
-                      <th className="min-w-[70px] p-2 text-center">Ent.</th>
-                      <th className="min-w-[90px] p-2 text-center">Std Used</th>
-                      <th className="min-w-[70px] p-2 text-center">Except.</th>
-                      <th className="min-w-[80px] p-2 text-center">Remain</th>
-
-                      {yearDays.map((date) => (
-                        <th key={toISO(date)} className="min-w-[34px] border-l p-1 text-center font-medium">
-                          <div>{date.getDate()}</div>
-                          <div className="text-[10px] text-slate-500">{months[date.getMonth()]}</div>
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-
-                  <tbody>
-                    {visibleEmployees.map((employee) => {
-                      const standardUsed = usedDays(employee);
-                      const exceptions = exceptionDays(employee);
-                      const remaining = employee.entitlement - standardUsed;
-                      const employeeHolidayMap = holidayDayMap.get(employee.id) || new Map();
-
-                      return (
-                        <tr key={employee.id} className="border-t">
-                          <td className="sticky left-0 z-10 bg-white p-2 font-semibold">{employeeFullName(employee)}</td>
-                          <td className="p-2 text-center">{employee.staff_number || "-"}</td>
-                          <td className="p-2 text-center">{employeeDepartmentNames(employee)}</td>
-                          <td className="p-2 text-center">{employee.entitlement}</td>
-                          <td className="p-2 text-center">{standardUsed}</td>
-                          <td className="p-2 text-center">{exceptions}</td>
-                          <td className={`p-2 text-center font-semibold ${remaining < 0 ? "text-red-600" : "text-slate-900"}`}>{remaining}</td>
-
-                          {yearDays.map((date) => {
-                            const iso = toISO(date);
-                            const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-                            const bankName = bankHolidayMap.get(iso);
-                            const booking = employeeHolidayMap.get(iso);
-                            const isToday = iso === toISO(new Date());
-
-                            let cls = "bg-white";
-                            let mark = "";
-
-                            if (isWeekend) cls = "bg-slate-200";
-                            if (bankName) { cls = "bg-amber-200"; mark = "BH"; }
-                            if (booking) {
-                              cls = leaveTypeColorClass(booking);
-                              mark = Number(booking.dayAmount) === 0.5 ? "½" : isStandardBooking(booking) ? "H" : "L";
-                            }
-
-                            return (
-                              <td
-                                key={iso}
-                                className={`h-8 border-l text-center ${isToday ? "bg-orange-100 font-bold" : cls}`}
-                                title={`${employeeFullName(employee)} | ${iso}`}
-                              >
-                                {mark}
-                              </td>
-                            );
-                          })}
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
               </div>
             </div>
-          </div>
-        )}
-        <ConfirmDialog
-          open={Boolean(confirmAction)}
-          title={confirmAction?.title || ""}
-          message={confirmAction?.message || ""}
-          confirmText={confirmAction?.confirmText || "Confirm"}
-          confirmVariant={confirmAction?.confirmVariant || "danger"}
-          onCancel={() => setConfirmAction(null)}
-          onConfirm={() => {
-            confirmAction?.onConfirm();
-            setConfirmAction(null);
-          }}
-        />
+          )}
+          <ConfirmDialog
+            open={Boolean(confirmAction)}
+            title={confirmAction?.title || ""}
+            message={confirmAction?.message || ""}
+            confirmText={confirmAction?.confirmText || "Confirm"}
+            confirmVariant={confirmAction?.confirmVariant || "danger"}
+            onCancel={() => setConfirmAction(null)}
+            onConfirm={() => {
+              confirmAction?.onConfirm();
+              setConfirmAction(null);
+            }}
+          />
 
-        {editingEmployee && (
-          <div className="fixed inset-0 z-50 flex justify-end bg-black/30">
-            <div className="h-full w-full max-w-xl overflow-auto bg-white p-5 shadow-xl">
-              <div className="mb-4 flex items-center justify-between">
-                <div>
-                  <h2 className="text-lg font-semibold">Edit Employee</h2>
-                  <p className="text-sm text-slate-500">
-                    {employeeFullName(editingEmployee)}
-                  </p>
-                </div>
-
-                <Button variant="outline" onClick={() => setEditingId(null)}>
-                  Close
-                </Button>
-              </div>
-
-              {/* Side panel provides more space for employee fields without expanding the table */}
-              <div className="space-y-3">
-                <input
-                  value={editFirstName}
-                  onChange={(e) => setEditFirstName(e.target.value)}
-                  className="w-full rounded-xl border px-3 py-2 text-sm"
-                  placeholder="First name"
-                />
-
-                <input
-                  value={editLastName}
-                  onChange={(e) => setEditLastName(e.target.value)}
-                  className="w-full rounded-xl border px-3 py-2 text-sm"
-                  placeholder="Last name"
-                />
-
-                <input
-                  value={editStaffNumber}
-                  onChange={(e) =>
-                    setEditStaffNumber(e.target.value.replace(/\D/g, "").slice(0, 10))
-                  }
-                  className="w-full rounded-xl border px-3 py-2 text-sm"
-                  placeholder="Staff number"
-                />
-
-                <input
-                  type="number"
-                  value={editEntitlement}
-                  onChange={(e) => setEditEntitlement(e.target.value)}
-                  className="w-full rounded-xl border px-3 py-2 text-sm"
-                  placeholder="Entitlement"
-                />
-
-                <div className="rounded-xl border p-3">
-                  <p className="mb-2 text-sm font-medium">Departments</p>
-
-                  <div className="grid gap-2 md:grid-cols-2">
-                    {departments.map((department) => (
-                      <label key={department.id} className="flex items-center gap-2 text-sm">
-                        <input
-                          type="checkbox"
-                          checked={editDepartmentIds.includes(department.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setEditDepartmentIds([...editDepartmentIds, department.id]);
-                            } else {
-                              setEditDepartmentIds(
-                                editDepartmentIds.filter((id) => id !== department.id)
-                              );
-                            }
-                          }}
-                        />
-                        {department.name}
-                      </label>
-                    ))}
+          {editingEmployee && (
+            <div className="fixed inset-0 z-50 flex justify-end bg-black/30">
+              <div className="h-full w-full max-w-xl overflow-auto bg-white p-5 shadow-xl">
+                <div className="mb-4 flex items-center justify-between">
+                  <div>
+                    <h2 className="text-lg font-semibold">Edit Employee</h2>
+                    <p className="text-sm text-slate-500">
+                      {employeeFullName(editingEmployee)}
+                    </p>
                   </div>
-                </div>
-
-                <div className="flex gap-2 pt-2">
-                  <Button onClick={() => saveEdit(editingEmployee.id)}>
-                    Save Changes
-                  </Button>
 
                   <Button variant="outline" onClick={() => setEditingId(null)}>
-                    Cancel
+                    Close
                   </Button>
+                </div>
+
+                {/* Side panel provides more space for employee fields without expanding the table */}
+                <div className="space-y-3">
+                  <input
+                    value={editFirstName}
+                    onChange={(e) => setEditFirstName(e.target.value)}
+                    className="w-full rounded-xl border px-3 py-2 text-sm"
+                    placeholder="First name"
+                  />
+
+                  <input
+                    value={editLastName}
+                    onChange={(e) => setEditLastName(e.target.value)}
+                    className="w-full rounded-xl border px-3 py-2 text-sm"
+                    placeholder="Last name"
+                  />
+
+                  <input
+                    value={editStaffNumber}
+                    onChange={(e) =>
+                      setEditStaffNumber(e.target.value.replace(/\D/g, "").slice(0, 10))
+                    }
+                    className="w-full rounded-xl border px-3 py-2 text-sm"
+                    placeholder="Staff number"
+                  />
+
+                  <input
+                    type="number"
+                    value={editEntitlement}
+                    onChange={(e) => setEditEntitlement(e.target.value)}
+                    className="w-full rounded-xl border px-3 py-2 text-sm"
+                    placeholder="Entitlement"
+                  />
+
+                  <div className="rounded-xl border p-3">
+                    <p className="mb-2 text-sm font-medium">Departments</p>
+
+                    <div className="grid gap-2 md:grid-cols-2">
+                      {departments.map((department) => (
+                        <label key={department.id} className="flex items-center gap-2 text-sm">
+                          <input
+                            type="checkbox"
+                            checked={editDepartmentIds.includes(department.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setEditDepartmentIds([...editDepartmentIds, department.id]);
+                              } else {
+                                setEditDepartmentIds(
+                                  editDepartmentIds.filter((id) => id !== department.id)
+                                );
+                              }
+                            }}
+                          />
+                          {department.name}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 pt-2">
+                    <Button onClick={() => saveEdit(editingEmployee.id)}>
+                      Save Changes
+                    </Button>
+
+                    <Button variant="outline" onClick={() => setEditingId(null)}>
+                      Cancel
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
 
-        {activeView === "planner" && (
-          <Card>
-            <CardContent className="p-4">
-              <h2 className="mb-2 font-semibold">Irish bank holidays included for {year}</h2>
-              <div className="grid gap-2 text-sm md:grid-cols-2 lg:grid-cols-3">
-                {[...bankHolidayMap.entries()].sort().map(([date, name]) => (
-                  <div key={date} className="rounded-xl bg-amber-100 px-3 py-2">
-                    <span className="font-medium">{date}</span> — {name}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-    </div>    </AuthGate>
+          {activeView === "planner" && (
+            <Card>
+              <CardContent className="p-4">
+                <h2 className="mb-2 font-semibold">Irish bank holidays included for {year}</h2>
+                <div className="grid gap-2 text-sm md:grid-cols-2 lg:grid-cols-3">
+                  {[...bankHolidayMap.entries()].sort().map(([date, name]) => (
+                    <div key={date} className="rounded-xl bg-amber-100 px-3 py-2">
+                      <span className="font-medium">{date}</span> — {name}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>    </AuthGate>
   );
 }
