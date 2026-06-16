@@ -1221,6 +1221,36 @@ export default function IrishHolidayPlanner() {
     await loadEmployees();
   }
 
+  /**
+ * Determines whether the proposed booking overlaps an existing booking
+ * for the same employee.
+ *
+ * When editing an existing booking, that booking is ignored so users
+ * can update it without triggering a false positive.
+ */
+  function hasOverlappingBooking(
+    employee,
+    startDate,
+    endDate,
+    bookingIdToIgnore = null
+  ) {
+    if (!employee) return false;
+
+    const proposedStart = fromISO(startDate);
+    const proposedEnd = fromISO(endDate);
+
+    return employee.holidays.some((holiday) => {
+      if (holiday.id === bookingIdToIgnore) {
+        return false;
+      }
+
+      const existingStart = fromISO(holiday.start);
+      const existingEnd = fromISO(holiday.end);
+
+      return proposedStart <= existingEnd && proposedEnd >= existingStart;
+    });
+  }
+
   function resetHolidayPickerToCurrentMonth() {
     const current = toISO(new Date());
     setHolidayStart(current);
@@ -1235,7 +1265,19 @@ export default function IrishHolidayPlanner() {
     // Viewers can see the planner but cannot create bookings
     if (!canManageBookings) return;
     if (!selectedEmployee || !holidayStart || !holidayEnd) return;
-    if (fromISO(holidayEnd) < fromISO(holidayStart)) return;
+
+    if (fromISO(holidayEnd) < fromISO(holidayStart)) {
+      showToast("End date cannot be before start date.", "error");
+      return;
+    }
+
+    if (hasOverlappingBooking(selectedEmployee, holidayStart, holidayEnd)) {
+      showToast(
+        "This employee already has a booking that overlaps these dates. Please choose different dates.",
+        "error"
+      );
+      return;
+    }
 
     const { error } = await supabase.from("holiday_bookings").insert({
       employee_id: selectedEmployee.id,
@@ -1263,7 +1305,31 @@ export default function IrishHolidayPlanner() {
     // Admins and managers can edit bookings, including past bookings
     if (!canManageBookings) return;
     if (!editingBooking) return;
-
+  
+    const employeeBeingEdited = employees.find(
+      (employee) => employee.id === editingBooking.employeeId
+    );
+  
+    if (fromISO(holidayEnd) < fromISO(holidayStart)) {
+      showToast("End date cannot be before start date.", "error");
+      return;
+    }
+  
+    if (
+      hasOverlappingBooking(
+        employeeBeingEdited,
+        holidayStart,
+        holidayEnd,
+        editingBooking.bookingId
+      )
+    ) {
+      showToast(
+        "This employee already has a booking that overlaps these dates. Please choose different dates.",
+        "error"
+      );
+      return;
+    }
+  
     const { error } = await supabase
       .from("holiday_bookings")
       .update({
@@ -1275,16 +1341,16 @@ export default function IrishHolidayPlanner() {
         day_amount: dayAmount,
       })
       .eq("id", editingBooking.bookingId);
-
+  
     if (error) {
       showToast(error.message, "error");
       return;
     }
-
+  
     showToast("Holiday booking updated successfully.", "success");
-
+  
     setEditingBooking(null);
-
+  
     await loadEmployees();
   }
 
