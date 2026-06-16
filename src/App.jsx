@@ -1048,7 +1048,7 @@ export default function IrishHolidayPlanner() {
       .eq("id", id);
 
     if (error) {
-      alert(error.message);
+      showToast(error.message, "error");
       return;
     }
 
