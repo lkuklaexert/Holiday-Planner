@@ -9,6 +9,7 @@ import { useToast } from "./components/common/ToastProvider";
 import ExcelJS from "exceljs";
 import { login, resetPassword, updatePassword } from "./features/auth/authService";
 import LoginForm from "./features/auth/LoginForm";
+import AuthGate from "./app/AuthGate";
 
 const LEAVE_CATEGORIES = {
   STANDARD: "standard_entitlement",
@@ -1434,8 +1435,10 @@ export default function IrishHolidayPlanner() {
     );
   }
 
-  if (!session) {
-    return (
+  return (
+    <AuthGate
+      session={session}
+      authFallback={(
       <div className="min-h-screen flex items-center justify-center bg-slate-100 p-4">
         <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-lg">
           <h1 className="mb-4 text-2xl font-bold text-center">
@@ -1453,10 +1456,8 @@ export default function IrishHolidayPlanner() {
           />
         </div>
       </div>
-    );
-  }
-
-  return (
+      )}
+    >
     <div className="min-h-screen bg-slate-50 p-4 text-slate-900">
       <div className="mx-auto max-w-[1600px] space-y-4">
         <div className="flex flex-wrap gap-2 rounded-2xl bg-white p-3 shadow-sm">
@@ -2345,6 +2346,6 @@ export default function IrishHolidayPlanner() {
           </Card>
         )}
       </div>
-    </div>
+    </div>    </AuthGate>
   );
 }
