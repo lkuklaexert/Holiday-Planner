@@ -2721,24 +2721,7 @@ export default function IrishHolidayPlanner() {
             </Card>
           )}
         </div>
-      </div>
-
-      <ChangePasswordModal
-        isOpen={isChangePasswordOpen}
-        newPassword={newPassword}
-        confirmNewPassword={confirmNewPassword}
-        setNewPassword={setNewPassword}
-        setConfirmNewPassword={setConfirmNewPassword}
-        onClose={() => {
-          setIsChangePasswordOpen(false);
-          setNewPassword("");
-          setConfirmNewPassword("");
-        }}
-        onSubmit={handleSetNewPassword}
-      />
-
+      </div>     
     </AuthGate>
-
-
   );
 }
