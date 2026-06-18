@@ -249,6 +249,7 @@ export default function IrishHolidayPlanner() {
   const [newDepartmentName, setNewDepartmentName] = useState("");
   const [editingDepartmentId, setEditingDepartmentId] = useState(null);
   const [editingDepartmentName, setEditingDepartmentName] = useState("");
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
   const [holidayStart, setHolidayStart] = useState(defaultCurrentDate);
   const [holidayEnd, setHolidayEnd] = useState(defaultCurrentDate);
@@ -1676,17 +1677,64 @@ export default function IrishHolidayPlanner() {
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <Button variant="outline" onClick={async () => await supabase.auth.signOut()}>Log out</Button>
+              <div className="relative">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsProfileMenuOpen((open) => !open)}
+                >
+                  {`${(profile?.first_name?.[0] || user?.email?.[0] || "U").toUpperCase()}`}
+                </Button>
 
-              <ChangePasswordForm
-                password={loginPassword}
-                setPassword={setLoginPassword}
-                onSubmit={handleSetNewPassword}
-              />
+                {isProfileMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-56 rounded-xl border bg-white shadow-lg z-50">
+                    <div className="border-b px-4 py-3">
+                      <p className="font-medium">
+                        {profile?.first_name && profile?.last_name
+                          ? `${profile.first_name} ${profile.last_name}`
+                          : user?.email}
+                      </p>
+
+                      <p className="text-xs text-slate-500">
+                        Account
+                      </p>
+                    </div>
+
+                    <div className="p-3 border-b">
+                      <ChangePasswordForm
+                        password={loginPassword}
+                        setPassword={setLoginPassword}
+                        onSubmit={handleSetNewPassword}
+                      />
+                    </div>
+
+                    <div className="p-2">
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={async () => {
+                          setIsProfileMenuOpen(false);
+                          await supabase.auth.signOut();
+                        }}
+                      >
+                        Logout
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               <Icon label="calendar" />
-              <label className="text-sm font-medium">Year</label>
-              <input type="number" value={year} onChange={(e) => setYear(Number(e.target.value))} className="w-28 rounded-xl border px-3 py-2 text-sm" />
+
+              <label className="text-sm font-medium">
+                Year
+              </label>
+
+              <input
+                type="number"
+                value={year}
+                onChange={(e) => setYear(Number(e.target.value))}
+                className="w-28 rounded-xl border px-3 py-2 text-sm"
+              />
             </div>
           </div>
           {activeView === "employees" && (
