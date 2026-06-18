@@ -649,15 +649,59 @@ export default function IrishHolidayPlanner() {
   }
 
   async function addDepartment() {
-    // Only admins can create departments
+    // Only admins can create or restore departments.
     if (!isAdmin) return;
+
     const name = newDepartmentName.trim();
-    if (!name) return;
+
+    if (!name) {
+      showToast("Department name is required.", "error");
+      return;
+    }
+
+    const activeDuplicate = departments.some(
+      (department) => department.name.trim().toLowerCase() === name.toLowerCase()
+    );
+
+    if (activeDuplicate) {
+      showToast("A department with this name already exists.", "error");
+      return;
+    }
+
+    const { data: existingDepartments, error: lookupError } = await supabase
+      .from("departments")
+      .select("id, name, active")
+      .ilike("name", name)
+      .limit(1);
+
+    if (lookupError) {
+      showToast("Unable to check department name. Please try again.", "error");
+      return;
+    }
+
+    const existingDepartment = existingDepartments?.[0];
+
+    if (existingDepartment && existingDepartment.active === false) {
+      const { error } = await supabase
+        .from("departments")
+        .update({ active: true, name })
+        .eq("id", existingDepartment.id);
+
+      if (error) {
+        showToast("Unable to restore this department. Please try again.", "error");
+        return;
+      }
+
+      setNewDepartmentName("");
+      showToast(`Department "${name}" has been restored successfully.`, "success");
+      await loadDepartments();
+      return;
+    }
 
     const { error } = await supabase.from("departments").insert({ name });
 
     if (error) {
-      showToast(error.message, "error");
+      showToast("A department with this name already exists.", "error");
       return;
     }
 
