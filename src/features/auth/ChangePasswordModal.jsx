@@ -11,7 +11,11 @@ export default function ChangePasswordModal({
   onSubmit,
 }) {
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Change Password">
+    <Modal
+      open={isOpen}
+      onClose={onClose}
+      title="Change Password"
+    >
       <form onSubmit={onSubmit} className="space-y-3">
         <input
           type="password"
