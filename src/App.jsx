@@ -1689,9 +1689,7 @@ export default function IrishHolidayPlanner() {
                   <div className="absolute right-0 mt-2 w-56 rounded-xl border bg-white shadow-lg z-50">
                     <div className="border-b px-4 py-3">
                       <p className="font-medium">
-                        {profile?.first_name && profile?.last_name
-                          ? `${profile.first_name} ${profile.last_name}`
-                          : user?.email}
+                      {session?.user?.email || "User account"}
                       </p>
 
                       <p className="text-xs text-slate-500">
