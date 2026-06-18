@@ -247,6 +247,8 @@ export default function IrishHolidayPlanner() {
   const [newEntitlement, setNewEntitlement] = useState(25);
 
   const [newDepartmentName, setNewDepartmentName] = useState("");
+  const [editingDepartmentId, setEditingDepartmentId] = useState(null);
+  const [editingDepartmentName, setEditingDepartmentName] = useState("");
 
   const [holidayStart, setHolidayStart] = useState(defaultCurrentDate);
   const [holidayEnd, setHolidayEnd] = useState(defaultCurrentDate);
@@ -661,6 +663,50 @@ export default function IrishHolidayPlanner() {
 
     setNewDepartmentName("");
     showToast(`Department "${name}" has been added successfully.`, "success");
+    await loadDepartments();
+  }
+
+  function startEditDepartment(department) {
+    setEditingDepartmentId(department.id);
+    setEditingDepartmentName(department.name);
+  }
+
+  async function saveDepartmentEdit(id) {
+    if (!isAdmin) return;
+
+    const name = editingDepartmentName.trim();
+
+    if (!name) {
+      showToast("Department name is required.", "error");
+      return;
+    }
+
+    const duplicateDepartment = departments.some(
+      (department) =>
+        department.id !== id &&
+        department.name.trim().toLowerCase() === name.toLowerCase()
+    );
+
+    if (duplicateDepartment) {
+      showToast("Another active department already has this name.", "error");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("departments")
+      .update({ name })
+      .eq("id", id);
+
+    if (error) {
+      showToast(error.message, "error");
+      return;
+    }
+
+    showToast(`Department "${name}" has been updated successfully.`, "success");
+
+    setEditingDepartmentId(null);
+    setEditingDepartmentName("");
+
     await loadDepartments();
   }
 
@@ -1305,16 +1351,16 @@ export default function IrishHolidayPlanner() {
     // Admins and managers can edit bookings, including past bookings
     if (!canManageBookings) return;
     if (!editingBooking) return;
-  
+
     const employeeBeingEdited = employees.find(
       (employee) => employee.id === editingBooking.employeeId
     );
-  
+
     if (fromISO(holidayEnd) < fromISO(holidayStart)) {
       showToast("End date cannot be before start date.", "error");
       return;
     }
-  
+
     if (
       hasOverlappingBooking(
         employeeBeingEdited,
@@ -1329,7 +1375,7 @@ export default function IrishHolidayPlanner() {
       );
       return;
     }
-  
+
     const { error } = await supabase
       .from("holiday_bookings")
       .update({
@@ -1341,16 +1387,16 @@ export default function IrishHolidayPlanner() {
         day_amount: dayAmount,
       })
       .eq("id", editingBooking.bookingId);
-  
+
     if (error) {
       showToast(error.message, "error");
       return;
     }
-  
+
     showToast("Holiday booking updated successfully.", "success");
-  
+
     setEditingBooking(null);
-  
+
     await loadEmployees();
   }
 
@@ -1862,9 +1908,52 @@ export default function IrishHolidayPlanner() {
                   </div>
                   <div className="space-y-1">
                     {departments.map((d) => (
-                      <div key={d.id} className="flex items-center justify-between rounded-xl border p-2 text-sm">
-                        <span>{d.name}</span>
-                        <Button size="sm" variant="danger" onClick={() => requestDeleteDepartment(d)}>Remove</Button>
+                      <div key={d.id} className="flex items-center justify-between gap-2 rounded-xl border p-2 text-sm">
+                        {editingDepartmentId === d.id ? (
+                          <>
+                            <input
+                              value={editingDepartmentName}
+                              onChange={(e) => setEditingDepartmentName(e.target.value)}
+                              className="flex-1 rounded-xl border px-3 py-2 text-sm"
+                              autoFocus
+                            />
+
+                            <Button size="sm" onClick={() => saveDepartmentEdit(d.id)}>
+                              Save
+                            </Button>
+
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                setEditingDepartmentId(null);
+                                setEditingDepartmentName("");
+                              }}
+                            >
+                              Cancel
+                            </Button>
+                          </>
+                        ) : (
+                          <>
+                            <span className="flex-1">{d.name}</span>
+
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => startEditDepartment(d)}
+                            >
+                              Edit
+                            </Button>
+
+                            <Button
+                              size="sm"
+                              variant="danger"
+                              onClick={() => requestDeleteDepartment(d)}
+                            >
+                              Remove
+                            </Button>
+                          </>
+                        )}
                       </div>
                     ))}
                   </div>
