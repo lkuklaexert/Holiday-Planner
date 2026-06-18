@@ -1682,7 +1682,7 @@ export default function IrishHolidayPlanner() {
                   variant="outline"
                   onClick={() => setIsProfileMenuOpen((open) => !open)}
                 >
-                  {`${(profile?.first_name?.[0] || user?.email?.[0] || "U").toUpperCase()}`}
+                  {`${(session?.user?.email?.[0] || "U").toUpperCase()}`}
                 </Button>
 
                 {isProfileMenuOpen && (
