@@ -9,7 +9,12 @@ import { useToast } from "./components/common/ToastProvider";
 import ExcelJS from "exceljs";
 import { login, resetPassword, updatePassword } from "./features/auth/authService";
 import AuthGate from "./app/AuthGate";
-import { AuthPage, ChangePasswordForm } from "./features/auth";
+import {
+  AuthPage,
+  ProfileMenu,
+} from "./features/auth";
+
+
 
 const LEAVE_CATEGORIES = {
   STANDARD: "standard_entitlement",
@@ -250,6 +255,10 @@ export default function IrishHolidayPlanner() {
   const [editingDepartmentId, setEditingDepartmentId] = useState(null);
   const [editingDepartmentName, setEditingDepartmentName] = useState("");
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
 
   const [holidayStart, setHolidayStart] = useState(defaultCurrentDate);
   const [holidayEnd, setHolidayEnd] = useState(defaultCurrentDate);
@@ -492,7 +501,17 @@ export default function IrishHolidayPlanner() {
     e.preventDefault();
     setLoginError("");
 
-    const { error } = await updatePassword(loginPassword);
+    if (!newPassword || !confirmNewPassword) {
+      showToast("Please enter and confirm your new password.", "error");
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      showToast("New passwords do not match.", "error");
+      return;
+    }
+
+    const { error } = await updatePassword(newPassword);
 
     if (error) {
       showToast(error.message, "error");
@@ -500,7 +519,10 @@ export default function IrishHolidayPlanner() {
     }
 
     showToast("Password updated successfully.", "success");
-    setLoginPassword("");
+
+    setNewPassword("");
+    setConfirmNewPassword("");
+    setIsChangePasswordOpen(false);
   }
 
   async function loadUserRole(userId) {
@@ -1677,49 +1699,23 @@ export default function IrishHolidayPlanner() {
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <div className="relative">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsProfileMenuOpen((open) => !open)}
-                >
-                  {`${(session?.user?.email?.[0] || "U").toUpperCase()}`}
-                </Button>
 
-                {isProfileMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-56 rounded-xl border bg-white shadow-lg z-50">
-                    <div className="border-b px-4 py-3">
-                      <p className="font-medium">
-                      {session?.user?.email || "User account"}
-                      </p>
-
-                      <p className="text-xs text-slate-500">
-                        Account
-                      </p>
-                    </div>
-
-                    <div className="p-3 border-b">
-                      <ChangePasswordForm
-                        password={loginPassword}
-                        setPassword={setLoginPassword}
-                        onSubmit={handleSetNewPassword}
-                      />
-                    </div>
-
-                    <div className="p-2">
-                      <Button
-                        variant="outline"
-                        className="w-full"
-                        onClick={async () => {
-                          setIsProfileMenuOpen(false);
-                          await supabase.auth.signOut();
-                        }}
-                      >
-                        Logout
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
+              <ProfileMenu
+                email={session?.user?.email}
+                isProfileMenuOpen={isProfileMenuOpen}
+                setIsProfileMenuOpen={setIsProfileMenuOpen}
+                isChangePasswordOpen={isChangePasswordOpen}
+                setIsChangePasswordOpen={setIsChangePasswordOpen}
+                newPassword={newPassword}
+                confirmNewPassword={confirmNewPassword}
+                setNewPassword={setNewPassword}
+                setConfirmNewPassword={setConfirmNewPassword}
+                onChangePasswordSubmit={handleSetNewPassword}
+                onLogout={async () => {
+                  setIsProfileMenuOpen(false);
+                  await supabase.auth.signOut();
+                }}
+              />
 
               <Icon label="calendar" />
 
@@ -2725,6 +2721,24 @@ export default function IrishHolidayPlanner() {
             </Card>
           )}
         </div>
-      </div>    </AuthGate>
+      </div>
+
+      <ChangePasswordModal
+        isOpen={isChangePasswordOpen}
+        newPassword={newPassword}
+        confirmNewPassword={confirmNewPassword}
+        setNewPassword={setNewPassword}
+        setConfirmNewPassword={setConfirmNewPassword}
+        onClose={() => {
+          setIsChangePasswordOpen(false);
+          setNewPassword("");
+          setConfirmNewPassword("");
+        }}
+        onSubmit={handleSetNewPassword}
+      />
+
+    </AuthGate>
+
+
   );
 }
