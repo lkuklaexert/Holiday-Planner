@@ -2532,9 +2532,6 @@ export default function IrishHolidayPlanner() {
                           </p>
                         </div>
 
-                        <Button variant="outline" onClick={() => setEditingId(null)}>
-                          Close
-                        </Button>
                       </div>
 
                       {/* Profile summary keeps key HR information visible before editing employee details. */}
@@ -2596,7 +2593,12 @@ export default function IrishHolidayPlanner() {
 
                           <div className="rounded-xl bg-white p-3 shadow-sm">
                             <p className="text-xs text-slate-500">Used</p>
-                            <p className="text-xl font-bold">{standardUsed}</p>
+                            <p
+                              className={`text-xl font-bold ${standardUsed > 0 ? "text-amber-600" : "text-slate-900"
+                                }`}
+                            >
+                              {standardUsed}
+                            </p>
                           </div>
 
                           <div className="rounded-xl bg-white p-3 shadow-sm">
@@ -2608,12 +2610,22 @@ export default function IrishHolidayPlanner() {
 
                           <div className="rounded-xl bg-white p-3 shadow-sm">
                             <p className="text-xs text-slate-500">Exceptions</p>
-                            <p className="text-xl font-bold">{exceptions}</p>
+                            <p
+                              className={`text-xl font-bold ${exceptions > 0 ? "text-sky-600" : "text-slate-900"
+                                }`}
+                            >
+                              {exceptions}
+                            </p>
                           </div>
 
                           <div className="rounded-xl bg-white p-3 shadow-sm">
                             <p className="text-xs text-slate-500">Sick</p>
-                            <p className="text-xl font-bold">{sickDays}</p>
+                            <p
+                              className={`text-xl font-bold ${sickDays > 0 ? "text-red-600" : "text-slate-900"
+                                }`}
+                            >
+                              {sickDays}
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -2728,6 +2740,9 @@ export default function IrishHolidayPlanner() {
 
                           <Button variant="outline" onClick={() => setEditingId(null)}>
                             Cancel
+                          </Button>
+                          <Button variant="outline" onClick={() => setEditingId(null)}>
+                            Close
                           </Button>
                         </div>
                       </div>
