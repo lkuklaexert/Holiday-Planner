@@ -2514,6 +2514,12 @@ export default function IrishHolidayPlanner() {
                     leaveTypeDays(editingEmployee, "sickness_uncertified", bankHolidayMap) +
                     leaveTypeDays(editingEmployee, "statutory_sick_leave", bankHolidayMap);
 
+                  const entitlement = Number(editingEmployee.entitlement || 0);
+                  const usedPercentage =
+                    entitlement > 0
+                      ? Math.min(100, Math.round((standardUsed / entitlement) * 100))
+                      : 0;
+
                   return (
                     <>
                       <div className="mb-4 flex items-center justify-between">
@@ -2553,6 +2559,34 @@ export default function IrishHolidayPlanner() {
                           </p>
 
                           <DepartmentBadges employee={editingEmployee} />
+                        </div>
+
+                        <div className="mb-5 rounded-xl bg-white p-4 shadow-sm">
+                          <div className="mb-2 flex items-center justify-between">
+                            <p className="text-sm font-medium text-slate-700">
+                              Leave balance used
+                            </p>
+
+                            <p className="text-sm font-semibold text-slate-700">
+                              {usedPercentage}%
+                            </p>
+                          </div>
+
+                          <div className="h-3 overflow-hidden rounded-full bg-slate-200">
+                            <div
+                              className={`h-full rounded-full ${usedPercentage >= 90
+                                  ? "bg-red-500"
+                                  : usedPercentage >= 70
+                                    ? "bg-amber-500"
+                                    : "bg-emerald-500"
+                                }`}
+                              style={{ width: `${usedPercentage}%` }}
+                            />
+                          </div>
+
+                          <p className="mt-2 text-xs text-slate-500">
+                            {standardUsed} of {entitlement} annual leave days used.
+                          </p>
                         </div>
 
                         <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
@@ -2721,7 +2755,7 @@ export default function IrishHolidayPlanner() {
             </Card>
           )}
         </div>
-      </div>     
+      </div>
     </AuthGate>
   );
 }
