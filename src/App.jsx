@@ -2522,28 +2522,22 @@ export default function IrishHolidayPlanner() {
 
                   return (
                     <>
-                      <div className="mb-4 flex items-center justify-between">
+                      <div className="mb-4 flex items-start justify-between gap-4">
                         <div>
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <h2 className="text-2xl font-bold tracking-tight">
-                                {editingEmployee.first_name} {editingEmployee.last_name}
-                              </h2>
-
-                              <p className="text-sm text-slate-500">
-                                Staff No. {editingEmployee.staff_number} • Employee Profile
-                              </p>
-                            </div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h2 className="text-2xl font-bold tracking-tight">
+                              {editingEmployee.first_name} {editingEmployee.last_name}
+                            </h2>
 
                             <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-medium text-emerald-700">
                               Active
                             </span>
                           </div>
+
                           <p className="text-sm text-slate-500">
                             Staff No. {editingEmployee.staff_number} • Employee Profile
                           </p>
                         </div>
-
                       </div>
 
                       {/* Profile summary keeps key HR information visible before editing employee details. */}
@@ -2737,7 +2731,7 @@ export default function IrishHolidayPlanner() {
                           )}
                         </div>
 
-                        <div className="flex gap-2 pt-2">
+                        <div className="flex justify-end gap-2 pt-2">
                           <Button onClick={() => saveEdit(editingEmployee.id)}>
                             Save Changes
                           </Button>
