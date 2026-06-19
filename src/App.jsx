@@ -2540,13 +2540,10 @@ export default function IrishHolidayPlanner() {
                       {/* Profile summary keeps key HR information visible before editing employee details. */}
                       <div className="mb-5 rounded-2xl border bg-slate-50 p-4">
                         <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                          <div>
-                            <h3 className="text-xl font-bold">
-                              {employeeFullName(editingEmployee)}
-                            </h3>
 
-                            <p className="text-sm text-slate-500">
-                              Staff No: {editingEmployee.staff_number || "-"}
+                          <div>
+                            <p className="text-xs font-medium uppercase text-slate-500">
+                              Profile Summary
                             </p>
                           </div>
 
