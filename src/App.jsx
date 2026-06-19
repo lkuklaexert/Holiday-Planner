@@ -2524,9 +2524,21 @@ export default function IrishHolidayPlanner() {
                     <>
                       <div className="mb-4 flex items-center justify-between">
                         <div>
-                          <h2 className="text-2xl font-bold tracking-tight">
-                            {editingEmployee.first_name} {editingEmployee.last_name}
-                          </h2>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <h2 className="text-2xl font-bold tracking-tight">
+                                {editingEmployee.first_name} {editingEmployee.last_name}
+                              </h2>
+
+                              <p className="text-sm text-slate-500">
+                                Staff No. {editingEmployee.staff_number} • Employee Profile
+                              </p>
+                            </div>
+
+                            <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-medium text-emerald-700">
+                              Active
+                            </span>
+                          </div>
                           <p className="text-sm text-slate-500">
                             Staff No. {editingEmployee.staff_number} • Employee Profile
                           </p>
@@ -2538,15 +2550,7 @@ export default function IrishHolidayPlanner() {
                       <div className="mb-5 rounded-2xl border bg-slate-50 p-4">
                         <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
 
-                          <div>
-                            <p className="text-xs font-medium uppercase text-slate-500">
-                              Profile Summary
-                            </p>
-                          </div>
 
-                          <span className="w-fit rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700">
-                            Active
-                          </span>
                         </div>
 
                         <div className="mb-4">
@@ -2741,7 +2745,10 @@ export default function IrishHolidayPlanner() {
                           <Button variant="outline" onClick={() => setEditingId(null)}>
                             Cancel
                           </Button>
-                          <Button variant="outline" onClick={() => setEditingId(null)}>
+                          <Button
+                            variant="outline"
+                            onClick={() => setEditingId(null)}
+                          >
                             Close
                           </Button>
                         </div>
