@@ -1,9 +1,7 @@
-/**
- * Planner page.
- *
- * Owns planner feature orchestration while delegating presentation
- * and business logic to smaller planner components.
- */
-export default function PlannerPage() {
-    return null;
-  }
+export default function PlannerPage({ children }) {
+  return (
+    <div className="space-y-6">
+      {children}
+    </div>
+  );
+}
