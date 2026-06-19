@@ -2524,9 +2524,11 @@ export default function IrishHolidayPlanner() {
                     <>
                       <div className="mb-4 flex items-center justify-between">
                         <div>
-                          <h2 className="text-lg font-semibold">Employee Profile</h2>
+                          <h2 className="text-2xl font-bold tracking-tight">
+                            {editingEmployee.first_name} {editingEmployee.last_name}
+                          </h2>
                           <p className="text-sm text-slate-500">
-                            HR details, departments and leave balance.
+                            Staff No. {editingEmployee.staff_number} • Employee Profile
                           </p>
                         </div>
 
@@ -2575,10 +2577,10 @@ export default function IrishHolidayPlanner() {
                           <div className="h-3 overflow-hidden rounded-full bg-slate-200">
                             <div
                               className={`h-full rounded-full ${usedPercentage >= 90
-                                  ? "bg-red-500"
-                                  : usedPercentage >= 70
-                                    ? "bg-amber-500"
-                                    : "bg-emerald-500"
+                                ? "bg-red-500"
+                                : usedPercentage >= 70
+                                  ? "bg-amber-500"
+                                  : "bg-emerald-500"
                                 }`}
                               style={{ width: `${usedPercentage}%` }}
                             />
