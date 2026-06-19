@@ -2524,20 +2524,18 @@ export default function IrishHolidayPlanner() {
                     <>
                       <div className="mb-4 flex items-start justify-between gap-4">
                         <div>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <h2 className="text-2xl font-bold tracking-tight">
-                              {editingEmployee.first_name} {editingEmployee.last_name}
-                            </h2>
-
-                            <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-medium text-emerald-700">
-                              Active
-                            </span>
-                          </div>
+                          <h2 className="text-2xl font-bold tracking-tight">
+                            {editingEmployee.first_name} {editingEmployee.last_name}
+                          </h2>
 
                           <p className="text-sm text-slate-500">
                             Staff No. {editingEmployee.staff_number} • Employee Profile
                           </p>
                         </div>
+
+                        <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-medium text-emerald-700">
+                          Active
+                        </span>
                       </div>
 
                       {/* Profile summary keeps key HR information visible before editing employee details. */}
@@ -2731,14 +2729,17 @@ export default function IrishHolidayPlanner() {
                           )}
                         </div>
 
-                        <div className="flex justify-end gap-2 pt-2">
-                          <Button onClick={() => saveEdit(editingEmployee.id)}>
-                            Save Changes
-                          </Button>
+                        <div className="flex items-center justify-between pt-2">
+                          <div className="flex gap-2">
+                            <Button onClick={() => saveEdit(editingEmployee.id)}>
+                              Save Changes
+                            </Button>
 
-                          <Button variant="outline" onClick={() => setEditingId(null)}>
-                            Cancel
-                          </Button>
+                            <Button variant="outline" onClick={() => setEditingId(null)}>
+                              Cancel
+                            </Button>
+                          </div>
+
                           <Button
                             variant="outline"
                             onClick={() => setEditingId(null)}
