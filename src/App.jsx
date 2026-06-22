@@ -267,6 +267,8 @@ export default function IrishHolidayPlanner() {
   const [editFirstName, setEditFirstName] = useState("");
   const [editLastName, setEditLastName] = useState("");
   const [editStaffNumber, setEditStaffNumber] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editAuthUserId, setEditAuthUserId] = useState("");
   const [editDepartmentId, setEditDepartmentId] = useState("");
   const [editDepartmentIds, setEditDepartmentIds] = useState([]);
   const [editEntitlement, setEditEntitlement] = useState(25);
@@ -1242,6 +1244,8 @@ export default function IrishHolidayPlanner() {
     setEditFirstName(employee.first_name || "");
     setEditLastName(employee.last_name || "");
     setEditStaffNumber(employee.staff_number || "");
+    setEditEmail(employee.email || "");
+    setEditAuthUserId(employee.auth_user_id || "");
     setEditDepartmentId(employee.department_id || "");
     setEditDepartmentIds(
       employee.departmentIds?.length
@@ -1288,6 +1292,8 @@ export default function IrishHolidayPlanner() {
         last_name: lastName,
         name: `${firstName} ${lastName}`.trim(),
         staff_number: editStaffNumber.trim() || null,
+        email: editEmail.trim() || null,
+        auth_user_id: editAuthUserId.trim() || null,
 
         // Keep primary department for backwards compatibility during migration
         department_id: editDepartmentIds[0] || null,
@@ -2650,6 +2656,39 @@ export default function IrishHolidayPlanner() {
                         />
 
                         <input
+                          type="email"
+                          value={editEmail}
+                          onChange={(e) => setEditEmail(e.target.value)}
+                          className="w-full rounded-xl border px-3 py-2 text-sm"
+                          placeholder="Email address optional for now"
+                        />
+                        <div className="rounded-xl border bg-slate-50 p-4">
+                          <div className="mb-3 flex items-center justify-between">
+                            <div>
+                              <h3 className="font-semibold">Application Access</h3>
+                              <p className="text-sm text-slate-500">
+                                Controls whether this employee can log in to the holiday planner.
+                              </p>
+                            </div>
+
+                            <span
+                              className={`rounded-full px-3 py-1 text-xs font-medium ${editAuthUserId
+                                  ? "bg-emerald-100 text-emerald-700"
+                                  : "bg-slate-200 text-slate-700"
+                                }`}
+                            >
+                              {editAuthUserId ? "Login Enabled" : "No Login Access"}
+                            </span>
+                          </div>
+
+                          <p className="text-sm text-slate-600">
+                            {editAuthUserId
+                              ? "This employee is linked to a Supabase login account."
+                              : "This employee exists as an HR record only. Login access can be granted later."}
+                          </p>
+                        </div>
+
+                        <input
                           type="number"
                           value={editEntitlement}
                           onChange={(e) => setEditEntitlement(e.target.value)}
@@ -2757,6 +2796,7 @@ export default function IrishHolidayPlanner() {
           {activeView === "planner" && (
             <Card>
               <CardContent className="p-4">
+                {/* PLAN-001: Bank Holidays section - to be extracted into PlannerPage */}
                 <h2 className="mb-2 font-semibold">Irish bank holidays included for {year}</h2>
                 <div className="grid gap-2 text-sm md:grid-cols-2 lg:grid-cols-3">
                   {[...bankHolidayMap.entries()].sort().map(([date, name]) => (
