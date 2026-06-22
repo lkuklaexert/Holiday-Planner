@@ -2,6 +2,8 @@ import React, { useMemo, useState, useEffect } from "react";
 import { supabase } from "./supabase";
 import Button from "./components/common/Button";
 import { Card, CardContent } from "./components/common/Card";
+import { AuthPage, ProfileMenu } from "./features/auth";
+import PlannerPage from "./features/planner/PlannerPage";
 import Icon from "./components/common/Icon";
 import ConfirmDialog from "./components/common/ConfirmDialog";
 import Toast from "./components/common/Toast";
@@ -9,12 +11,6 @@ import { useToast } from "./components/common/ToastProvider";
 import ExcelJS from "exceljs";
 import { login, resetPassword, updatePassword } from "./features/auth/authService";
 import AuthGate from "./app/AuthGate";
-import {
-  AuthPage,
-  ProfileMenu,
-} from "./features/auth";
-
-
 
 const LEAVE_CATEGORIES = {
   STANDARD: "standard_entitlement",
