@@ -116,14 +116,18 @@ export default function PlannerPage({
               </thead>
 
               <tbody>
-                {visibleEmployees.map((employee) => {
+                {visibleEmployees.map((employee, index) => {
                   const standardUsed = usedDays(employee);
                   const exceptions = exceptionDays(employee);
                   const remaining = employee.entitlement - standardUsed;
                   const employeeHolidayMap = holidayDayMap.get(employee.id) || new Map();
 
                   return (
-                    <tr key={employee.id} className="border-t">
+                    <tr
+                      key={employee.id}
+                      className={`border-t ${index % 2 === 0 ? "bg-white" : "bg-slate-50"
+                        }`}
+                    >
                       <td className="sticky left-0 z-10 bg-white p-2 font-semibold">{employeeFullName(employee)}</td>
                       <td className="p-2 text-center">{employee.staff_number || "-"}</td>
                       <td className="p-2 text-center">{employeeDepartmentNames(employee)}</td>
