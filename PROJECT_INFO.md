@@ -1,6 +1,6 @@
 # Holiday Planner – Project Operations Manual
 
-> Last Updated: 2026-06-21
+> Last Updated: 2026-06-23
 
 ---
 
@@ -15,6 +15,9 @@ Employee holiday management system built with React, Supabase and Cloudflare.
 **Current Version**
 v0.8.0
 
+**Current Status**
+Core HR holiday planning system operational with authentication, employee management, department management, planner, bookings, import/export and role foundations.
+
 ---
 
 # 2. GitHub
@@ -22,82 +25,89 @@ v0.8.0
 **Repository**
 https://github.com/lkuklaexert/Holiday-Planner
 
+**GitHub Owner**
+lkuklaexert
+
 **Default Branch**
 main
 
-Branch Strategy
+## Branch Strategy
 
-main
-Production branch
+### main
 
-staging
-Testing branch
+Production branch.
 
-Feature development is completed on staging and merged into main after approval.
+Used by live users.
+
+### staging
+
+Testing branch.
+
+All development work is completed and tested on staging before release.
+
+### Release Rule
+
+Features are developed and validated on staging.
+
+Only approved and tested changes are merged into main.
 
 ---
 
 # 3. Deployment Register
 
+## Cloudflare Pages
+
+**Project Name**
+holiday-planner
+
+**Cloudflare Owner**
+Exertis Cloudflare Account
+
+**Cloudflare Email**
+[lukasz.kukla@exertis.com](mailto:lukasz.kukla@exertis.com)
+
+---
+
 ## Deployment Environments
 
 ### Production
 
-Branch:
+**Branch**
 main
 
-URL:
-TODO
+**URL**
+https://holiday-planner-5lq.pages.dev
 
-Purpose:
-Live system used by employees.
+**Purpose**
+Live environment used by employees.
 
 ---
 
 ### Staging
 
-Branch:
+**Branch**
 staging
 
-URL:
-TODO
+**URL**
+Latest successful deployment from the staging branch in Cloudflare Pages → Deployments.
 
-Purpose:
+**Purpose**
 Testing environment before production release.
 
 ---
 
-### Release Process
+## Release Process
 
-1. Develop on staging
-2. Test on staging Cloudflare deployment
-3. Approve changes
-4. Merge staging into main
-5. Deploy production
-
-## Current Production
-
-**Cloudflare Owner**
-TODO
-
-**Cloudflare Email**
-TODO
-
-**GitHub Owner**
-lkuklaexert
-
-**Cloudflare Project Name**
-> TODO
-
-**GitHub Repository**
-https://github.com/lkuklaexert/Holiday-Planner
-
-
-**Production URL**
-> TODO
-
-**Preview URL**
-> TODO
+1. Develop feature on staging.
+2. Build locally.
+3. Commit and push to staging.
+4. Cloudflare deploys staging preview.
+5. Complete live testing.
+6. Approve release.
+7. Merge staging into main.
+8. Push main.
+9. Cloudflare deploys production.
+10. Verify production.
 
 ---
 
@@ -122,54 +132,77 @@ dist
 
 # 4. Supabase
 
-**Project Name**
-> TODO
-
-**Project URL**
-> TODO
-
 **Authentication**
 Email / Password
 
 **Database**
 PostgreSQL
 
+**User Roles**
+
+```text
+admin
+manager
+viewer
+```
+
+**Role Direction (Future)**
+
+Roles will ultimately be managed through employee records rather than directly through Supabase administration.
+
+Employees will be linked to authentication accounts using:
+
+```text
+employees.auth_user_id
+        ↓
+auth.users.id
+        ↓
+profiles.id
+```
+
 ---
 
 # 5. Environment Variables
 
-Configured in Cloudflare.
+Configured in Cloudflare Pages.
 
 Required:
 
-- VITE_SUPABASE_URL
-- VITE_SUPABASE_ANON_KEY
+```text
+VITE_SUPABASE_URL
+VITE_SUPABASE_ANON_KEY
+```
 
-> Never store secret keys or passwords in this file.
+Never store:
+
+* Service Role Keys
+* Passwords
+* API secrets
+* Personal access tokens
 
 ---
 
 # 6. Local Development
 
-Install
+## Install
 
 ```bash
 npm install
 ```
 
-Run
+## Run Development Server
 
 ```bash
 npm run dev
 ```
 
-Production Build
+## Production Build
 
 ```bash
 npm run build
 ```
 
-Preview Production Build
+## Preview Production Build
 
 ```bash
 npm run preview
@@ -177,15 +210,35 @@ npm run preview
 
 ---
 
-# 7. Deployment Workflow
+# 7. Development Workflow
 
-1. Develop feature
-2. Test locally
-3. Commit
-4. Push to GitHub
-5. Cloudflare auto-deploys
-6. Live test
-7. Mark roadmap item complete
+## Standard Feature Workflow
+
+1. Implement feature.
+2. Build locally.
+3. Commit to staging.
+4. Push to staging.
+5. Cloudflare deploys staging.
+6. Live test.
+7. Approve.
+8. Merge into main.
+9. Push main.
+10. Cloudflare deploys production.
+11. Verify production.
+12. Mark roadmap item complete.
+
+## Definition of Done
+
+A feature is only complete when:
+
+* Code implemented.
+* Build successful.
+* Committed.
+* Pushed.
+* Deployed.
+* Live tested.
+* Console clean.
+* Roadmap updated.
 
 ---
 
@@ -193,58 +246,67 @@ npm run preview
 
 ## Frontend
 
-- React
-- Vite
-- Tailwind CSS
+* React
+* Vite
+* Tailwind CSS
 
 ## Backend
 
-- Supabase
+* Supabase
 
 ## Hosting
 
-- Cloudflare Pages
+* Cloudflare Pages
 
 ## Source Control
 
-- GitHub
+* GitHub
 
 ---
 
-# Release Checklist
+# 9. Release Checklist
 
 Before merging staging into main:
 
 □ npm run build passes
+
 □ Cloudflare staging deployment successful
+
 □ Live testing completed
+
 □ Console clean
+
 □ No critical bugs found
+
 □ Feature marked complete on roadmap
+
 □ PROJECT_INFO.md updated if required
-
-# 9. Recovery Checklist
-
-If moving to another computer:
-
-- Clone GitHub repository
-- Run `npm install`
-- Verify Node.js
-- Verify Cloudflare account
-- Verify Supabase project
-- Verify environment variables
-- Run `npm run build`
-- Deploy
 
 ---
 
-# 10. Notes
+# 10. Recovery Checklist
 
-Do **not** store:
+If moving to another computer:
 
-- Passwords
-- API secrets
-- Service Role Keys
-- Personal access tokens
+* Clone GitHub repository.
+* Run npm install.
+* Verify Node.js.
+* Verify Cloudflare access.
+* Verify Supabase access.
+* Verify environment variables.
+* Run npm run build.
+* Verify staging deployment.
+* Verify production deployment.
 
-This document is intended to record infrastructure and deployment information only.
+---
+
+# 11. Notes
+
+Do not store:
+
+* Passwords
+* API secrets
+* Service Role Keys
+* Personal access tokens
+
+This document records infrastructure, deployment and operational information for the Holiday Planner application.

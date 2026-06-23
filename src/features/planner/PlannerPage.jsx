@@ -98,7 +98,7 @@ export default function PlannerPage({
             <table className="min-w-full border-collapse text-xs">
               <thead className="sticky top-0 z-10 bg-white shadow-sm">
                 <tr>
-                <th className="sticky left-0 z-20 min-w-[260px] border-r-2 border-slate-300 bg-white p-3 text-left font-semibold">Employee</th>
+                  <th className="sticky left-0 z-20 min-w-[260px] border-r-2 border-slate-300 bg-white p-3 text-left font-semibold">Employee</th>
                   <th className="min-w-[90px] p-2 text-center">Staff No.</th>
                   <th className="min-w-[110px] p-2 text-center">Dept.</th>
                   <th className="min-w-[70px] p-2 text-center">Ent.</th>

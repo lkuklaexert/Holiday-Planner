@@ -2484,36 +2484,40 @@ export default function IrishHolidayPlanner() {
 
                       {/* Side panel provides more space for employee fields without expanding the table */}
                       <div className="space-y-3">
-                        <input
-                          value={editFirstName}
-                          onChange={(e) => setEditFirstName(e.target.value)}
-                          className="w-full rounded-xl border px-3 py-2 text-sm"
-                          placeholder="First name"
-                        />
+                        <div className="grid grid-cols-2 gap-3">
+                          <input
+                            value={editFirstName}
+                            onChange={(e) => setEditFirstName(e.target.value)}
+                            className="w-full rounded-xl border px-3 py-2 text-sm"
+                            placeholder="First name"
+                          />
 
-                        <input
-                          value={editLastName}
-                          onChange={(e) => setEditLastName(e.target.value)}
-                          className="w-full rounded-xl border px-3 py-2 text-sm"
-                          placeholder="Last name"
-                        />
+                          <input
+                            value={editLastName}
+                            onChange={(e) => setEditLastName(e.target.value)}
+                            className="w-full rounded-xl border px-3 py-2 text-sm"
+                            placeholder="Last name"
+                          />
+                        </div>
 
-                        <input
-                          value={editStaffNumber}
-                          onChange={(e) =>
-                            setEditStaffNumber(e.target.value.replace(/\D/g, "").slice(0, 10))
-                          }
-                          className="w-full rounded-xl border px-3 py-2 text-sm"
-                          placeholder="Staff number"
-                        />
+                        <div className="grid grid-cols-5 gap-3">
+                          <input
+                            value={editStaffNumber}
+                            onChange={(e) =>
+                              setEditStaffNumber(e.target.value.replace(/\D/g, "").slice(0, 10))
+                            }
+                            className="col-span-1 w-full rounded-xl border px-3 py-2 text-sm"
+                            placeholder="Staff No."
+                          />
 
-                        <input
-                          type="email"
-                          value={editEmail}
-                          onChange={(e) => setEditEmail(e.target.value)}
-                          className="w-full rounded-xl border px-3 py-2 text-sm"
-                          placeholder="Email address optional for now"
-                        />
+                          <input
+                            type="email"
+                            value={editEmail}
+                            onChange={(e) => setEditEmail(e.target.value)}
+                            className="col-span-4 w-full rounded-xl border px-3 py-2 text-sm"
+                            placeholder="Email address optional for now"
+                          />
+                        </div>
                         <div className="rounded-xl border bg-slate-50 p-4">
                           <div className="mb-3 flex items-center justify-between">
                             <div>
@@ -2584,7 +2588,7 @@ export default function IrishHolidayPlanner() {
                               No leave records found.
                             </div>
                           ) : (
-                            <div className="max-h-64 overflow-y-auto">
+                            <div className="max-h-96 overflow-y-auto">
                               {editingEmployee.holidays
                                 .slice()
                                 .sort((a, b) => b.start.localeCompare(a.start))
@@ -2642,7 +2646,7 @@ export default function IrishHolidayPlanner() {
                 })()}
               </div>
             </div>
-          )}          
+          )}
         </div>
       </div>
     </AuthGate>
