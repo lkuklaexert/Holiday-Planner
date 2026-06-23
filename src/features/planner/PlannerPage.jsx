@@ -128,9 +128,16 @@ export default function PlannerPage({
                       className={`border-t ${index % 2 === 0 ? "bg-white" : "bg-slate-50"
                         }`}
                     >
-                      <td className="sticky left-0 z-10 bg-white p-2 font-semibold">{employeeFullName(employee)}</td>
-                      <td className="p-2 text-center">{employee.staff_number || "-"}</td>
-                      <td className="p-2 text-center">{employeeDepartmentNames(employee)}</td>
+                      <td
+                        className={`sticky left-0 z-10 p-2 font-semibold ${index % 2 === 0 ? "bg-white" : "bg-slate-50"
+                          }`}
+                      >{employeeFullName(employee)}</td>
+                      <td className={`p-2 text-center ${index % 2 === 0 ? "bg-white" : "bg-slate-50"}`}>
+                        {employee.staff_number || "-"}
+                      </td>
+                      <td className={`p-2 text-center ${index % 2 === 0 ? "bg-white" : "bg-slate-50"}`}>
+                        {employeeDepartmentNames(employee)}
+                      </td>
                       <td className="p-2 text-center">{employee.entitlement}</td>
                       <td className="p-2 text-center">{standardUsed}</td>
                       <td className="p-2 text-center">{exceptions}</td>
