@@ -13,7 +13,7 @@ Holiday Planner
 Employee holiday management system built with React, Supabase and Cloudflare.
 
 **Current Version**
-v0.8
+v0.8.0
 
 ---
 
@@ -25,20 +25,73 @@ https://github.com/lkuklaexert/Holiday-Planner
 **Default Branch**
 main
 
+Branch Strategy
+
+main
+Production branch
+
+staging
+Testing branch
+
+Feature development is completed on staging and merged into main after approval.
+
 ---
 
 # 3. Deployment Register
 
+## Deployment Environments
+
+### Production
+
+Branch:
+main
+
+URL:
+TODO
+
+Purpose:
+Live system used by employees.
+
+---
+
+### Staging
+
+Branch:
+staging
+
+URL:
+TODO
+
+Purpose:
+Testing environment before production release.
+
+---
+
+### Release Process
+
+1. Develop on staging
+2. Test on staging Cloudflare deployment
+3. Approve changes
+4. Merge staging into main
+5. Deploy production
+
 ## Current Production
 
-**Cloudflare Account**
-> TODO
+**Cloudflare Owner**
+TODO
 
 **Cloudflare Email**
-> TODO
+TODO
+
+**GitHub Owner**
+lkuklaexert
 
 **Cloudflare Project Name**
 > TODO
+
+**GitHub Repository**
+https://github.com/lkuklaexert/Holiday-Planner
+
 
 **Production URL**
 > TODO
@@ -157,6 +210,18 @@ npm run preview
 - GitHub
 
 ---
+
+# Release Checklist
+
+Before merging staging into main:
+
+□ npm run build passes
+□ Cloudflare staging deployment successful
+□ Live testing completed
+□ Console clean
+□ No critical bugs found
+□ Feature marked complete on roadmap
+□ PROJECT_INFO.md updated if required
 
 # 9. Recovery Checklist
 
