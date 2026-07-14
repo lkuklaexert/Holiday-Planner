@@ -2533,11 +2533,25 @@ export default function IrishHolidayPlanner() {
                             </span>
                           </div>
 
-                          <p className="text-sm text-slate-600">
-                            {editAuthUserId
-                              ? "This employee is linked to a Supabase login account."
-                              : "This employee exists as an HR record only. Login access can be granted later."}
-                          </p>
+                          <div className="mt-3 grid gap-3 md:grid-cols-2">
+                            <div>
+                              <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                                Email
+                              </p>
+                              <p className="mt-1 text-sm text-slate-700">
+                                {editEmail || "Not provided"}
+                              </p>
+                            </div>
+
+                            <div>
+                              <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                                Account
+                              </p>
+                              <p className="mt-1 text-sm text-slate-700">
+                                {editAuthUserId ? "Linked" : "Not linked"}
+                              </p>
+                            </div>
+                          </div>
                         </div>
 
                         <input
@@ -2642,7 +2656,7 @@ export default function IrishHolidayPlanner() {
                 })()}
               </div>
             </div>
-          )}          
+          )}
         </div>
       </div>
     </AuthGate>
