@@ -1631,6 +1631,49 @@ export default function IrishHolidayPlanner() {
     );
   }, 0);
 
+  const upcomingBirthdays = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return activeEmployees
+      .filter((employee) => employee.date_of_birth)
+      .map((employee) => {
+        const birthDate = fromISO(employee.date_of_birth);
+
+        let nextBirthday = new Date(
+          today.getFullYear(),
+          birthDate.getMonth(),
+          birthDate.getDate()
+        );
+
+        if (nextBirthday < today) {
+          nextBirthday = new Date(
+            today.getFullYear() + 1,
+            birthDate.getMonth(),
+            birthDate.getDate()
+          );
+        }
+
+        const daysUntil = Math.round(
+          (nextBirthday - today) / (1000 * 60 * 60 * 24)
+        );
+
+        const ageTurning =
+          nextBirthday.getFullYear() - birthDate.getFullYear();
+
+        return {
+          id: employee.id,
+          name: employeeFullName(employee),
+          dateOfBirth: employee.date_of_birth,
+          nextBirthday,
+          daysUntil,
+          ageTurning,
+        };
+      })
+      .sort((a, b) => a.nextBirthday - b.nextBirthday)
+      .slice(0, 5);
+  }, [activeEmployees]);
+
   function scrollCalendarToToday() {
     const el = document.getElementById("calendar-scroll-container");
     if (!el) return;
@@ -2366,6 +2409,7 @@ export default function IrishHolidayPlanner() {
               currentlyOnSickLeave={currentlyOnSickLeave}
               upcomingBookings30Days={upcomingBookings30Days}
               annualLeaveDaysBooked={annualLeaveDaysBooked}
+              upcomingBirthdays={upcomingBirthdays}
               departmentFilter={departmentFilter}
               setDepartmentFilter={setDepartmentFilter}
               departments={departments}
