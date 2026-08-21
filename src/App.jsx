@@ -244,6 +244,7 @@ export default function IrishHolidayPlanner() {
   const [newFirstName, setNewFirstName] = useState("");
   const [newLastName, setNewLastName] = useState("");
   const [newStaffNumber, setNewStaffNumber] = useState("");
+  const [newDateOfBirth, setNewDateOfBirth] = useState("");
   const [newDepartmentIds, setNewDepartmentIds] = useState([]);
   const [newEntitlement, setNewEntitlement] = useState(25);
 
@@ -267,6 +268,7 @@ export default function IrishHolidayPlanner() {
   const [editFirstName, setEditFirstName] = useState("");
   const [editLastName, setEditLastName] = useState("");
   const [editStaffNumber, setEditStaffNumber] = useState("");
+  const [editDateOfBirth, setEditDateOfBirth] = useState("");
   const [editEmail, setEditEmail] = useState("");
   const [editAuthUserId, setEditAuthUserId] = useState("");
   const [editDepartmentId, setEditDepartmentId] = useState("");
@@ -1106,6 +1108,7 @@ export default function IrishHolidayPlanner() {
         last_name: lastName,
         name: fullName,
         staff_number: staffNumber || null,
+        date_of_birth: newDateOfBirth || null,
 
         // Keep primary department for backwards compatibility during migration
         department_id: newDepartmentIds[0] || null,
@@ -1142,6 +1145,7 @@ export default function IrishHolidayPlanner() {
     setNewFirstName("");
     setNewLastName("");
     setNewStaffNumber("");
+    setNewDateOfBirth("");
     setNewDepartmentIds(departments[0]?.id ? [departments[0].id] : []);
     setNewEntitlement(25);
     showToast(`${fullName} has been added successfully.`, "success");
@@ -1244,6 +1248,7 @@ export default function IrishHolidayPlanner() {
     setEditFirstName(employee.first_name || "");
     setEditLastName(employee.last_name || "");
     setEditStaffNumber(employee.staff_number || "");
+    setEditDateOfBirth(employee.date_of_birth || "");
     setEditEmail(employee.email || "");
     setEditAuthUserId(employee.auth_user_id || "");
     setEditDepartmentId(employee.department_id || "");
@@ -1292,6 +1297,7 @@ export default function IrishHolidayPlanner() {
         last_name: lastName,
         name: `${firstName} ${lastName}`.trim(),
         staff_number: editStaffNumber.trim() || null,
+        date_of_birth: editDateOfBirth || null,
         email: editEmail.trim() || null,
         auth_user_id: editAuthUserId.trim() || null,
 
@@ -1625,6 +1631,49 @@ export default function IrishHolidayPlanner() {
     );
   }, 0);
 
+  const upcomingBirthdays = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return activeEmployees
+      .filter((employee) => employee.date_of_birth)
+      .map((employee) => {
+        const birthDate = fromISO(employee.date_of_birth);
+
+        let nextBirthday = new Date(
+          today.getFullYear(),
+          birthDate.getMonth(),
+          birthDate.getDate()
+        );
+
+        if (nextBirthday < today) {
+          nextBirthday = new Date(
+            today.getFullYear() + 1,
+            birthDate.getMonth(),
+            birthDate.getDate()
+          );
+        }
+
+        const daysUntil = Math.round(
+          (nextBirthday - today) / (1000 * 60 * 60 * 24)
+        );
+
+        const ageTurning =
+          nextBirthday.getFullYear() - birthDate.getFullYear();
+
+        return {
+          id: employee.id,
+          name: employeeFullName(employee),
+          dateOfBirth: employee.date_of_birth,
+          nextBirthday,
+          daysUntil,
+          ageTurning,
+        };
+      })
+      .filter((birthday) => birthday.daysUntil <= 30)
+      .sort((a, b) => a.nextBirthday - b.nextBirthday);
+  }, [activeEmployees]);
+
   function scrollCalendarToToday() {
     const el = document.getElementById("calendar-scroll-container");
     if (!el) return;
@@ -1743,10 +1792,49 @@ export default function IrishHolidayPlanner() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
-                    <input placeholder="First name" value={newFirstName} onChange={(e) => setNewFirstName(e.target.value)} className="rounded-xl border px-3 py-2 text-sm" />
-                    <input placeholder="Last name" value={newLastName} onChange={(e) => setNewLastName(e.target.value)} className="rounded-xl border px-3 py-2 text-sm" />
-                    <input placeholder="Staff no. max 10 digits" value={newStaffNumber} onChange={(e) => setNewStaffNumber(e.target.value.replace(/\D/g, "").slice(0, 10))} className="rounded-xl border px-3 py-2 text-sm" />
-                    <input type="number" value={newEntitlement} onChange={(e) => setNewEntitlement(e.target.value)} className="rounded-xl border px-3 py-2 text-sm" />
+                    <input
+                      placeholder="First name"
+                      value={newFirstName}
+                      onChange={(e) => setNewFirstName(e.target.value)}
+                      className="rounded-xl border px-3 py-2 text-sm"
+                    />
+
+                    <input
+                      placeholder="Last name"
+                      value={newLastName}
+                      onChange={(e) => setNewLastName(e.target.value)}
+                      className="rounded-xl border px-3 py-2 text-sm"
+                    />
+
+                    <input
+                      placeholder="Staff no. max 10 digits"
+                      value={newStaffNumber}
+                      onChange={(e) =>
+                        setNewStaffNumber(e.target.value.replace(/\D/g, "").slice(0, 10))
+                      }
+                      className="rounded-xl border px-3 py-2 text-sm"
+                    />
+
+                    <div>
+                      <label className="mb-1 block text-xs text-slate-600">
+                        Date of Birth
+                      </label>
+                      <input
+                        type="date"
+                        value={newDateOfBirth}
+                        onChange={(e) => setNewDateOfBirth(e.target.value)}
+                        max={todayISO}
+                        className="w-full rounded-xl border px-3 py-2 text-sm"
+                      />
+                    </div>
+
+                    <input
+                      type="number"
+                      value={newEntitlement}
+                      onChange={(e) => setNewEntitlement(e.target.value)}
+                      className="rounded-xl border px-3 py-2 text-sm"
+                      placeholder="Entitlement"
+                    />
                   </div>
 
                   <div className="rounded-xl border p-3">
@@ -2321,6 +2409,7 @@ export default function IrishHolidayPlanner() {
               currentlyOnSickLeave={currentlyOnSickLeave}
               upcomingBookings30Days={upcomingBookings30Days}
               annualLeaveDaysBooked={annualLeaveDaysBooked}
+              upcomingBirthdays={upcomingBirthdays}
               departmentFilter={departmentFilter}
               setDepartmentFilter={setDepartmentFilter}
               departments={departments}
@@ -2506,6 +2595,20 @@ export default function IrishHolidayPlanner() {
                           className="w-full rounded-xl border px-3 py-2 text-sm"
                           placeholder="Staff number"
                         />
+
+                        <div>
+                          <label className="mb-1 block text-xs font-medium text-slate-600">
+                            Date of Birth
+                          </label>
+
+                          <input
+                            type="date"
+                            value={editDateOfBirth}
+                            onChange={(e) => setEditDateOfBirth(e.target.value)}
+                            max={todayISO}
+                            className="w-full rounded-xl border px-3 py-2 text-sm"
+                          />
+                        </div>
 
                         <input
                           type="email"
