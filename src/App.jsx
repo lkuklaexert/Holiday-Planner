@@ -1670,8 +1670,8 @@ export default function IrishHolidayPlanner() {
           ageTurning,
         };
       })
-      .sort((a, b) => a.nextBirthday - b.nextBirthday)
-      .slice(0, 5);
+      .filter((birthday) => birthday.daysUntil <= 30)
+      .sort((a, b) => a.nextBirthday - b.nextBirthday);
   }, [activeEmployees]);
 
   function scrollCalendarToToday() {
